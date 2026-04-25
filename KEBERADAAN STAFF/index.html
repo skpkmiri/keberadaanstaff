@@ -145,14 +145,14 @@
         </div>
     </div>
 
-    <!-- Modal Pengesahan untuk Reset Global -->
+    <!-- Modal Pengesahan untuk Reset Global / Ikut Tarikh -->
     <div id="authModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in border border-blue-100">
             <div class="bg-red-600 p-6 text-white">
                 <h3 class="text-xl font-bold flex items-center gap-2">
                     <i data-lucide="shield-alert"></i> Pengesahan Team JW
                 </h3>
-                <p class="text-red-100 text-xs mt-1 uppercase tracking-wider font-semibold">Tindakan ini akan memadam semua data!</p>
+                <p class="text-red-100 text-xs mt-1 uppercase tracking-wider font-semibold">Padam rekod secara kekal</p>
             </div>
             <div class="p-6 space-y-4">
                 <div>
@@ -163,8 +163,12 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">No. Kad Pengenalan</label>
-                    <input type="password" id="jwIcInput" placeholder="Sila masukkan no IC tanpa '-'" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-[10px] text-slate-500 mt-2 font-medium italic">Sila masukkan no IC tanpa "-" (Hanya team JW dapat reset. Terima kasih)</p>
+                    <input type="password" id="jwIcInput" placeholder="Masukkan no IC tanpa '-'" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="pt-2 border-t">
+                    <label class="block text-sm font-bold text-red-700 mb-1">Tarikh untuk di-reset</label>
+                    <input type="date" id="jwResetDate" class="w-full p-3 bg-red-50 border border-red-100 rounded-xl outline-none focus:ring-2 focus:ring-red-500">
+                    <p class="text-[10px] text-slate-500 mt-2 font-medium italic">*Kosongkan tarikh jika ingin memadam SEMUA rekod dalam sistem.</p>
                 </div>
                 <div id="authError" class="hidden p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100">
                     Maklumat tidak sah. Akses dinafikan.
@@ -194,7 +198,7 @@
         const auth = firebase.auth();
         const appId = "keberadaan-staff-miri";
 
-        // --- TEAM JW BERTAULIAH (IC Jimmy Peter Updated: 910412125719) ---
+        // --- TEAM JW BERTAULIAH ---
         const JW_TEAM = [
             { name: 'MOHAMAD ABIDIN BIN SIPEK', ic: '910110136471' },
             { name: 'AIDA MASTURINA BINTI HAMKA', ic: '990507135736' },
@@ -252,14 +256,12 @@
         const REASONS = ['Cuti Rehat Khas (CRK)', 'Cuti Rehat (CR)', 'Cuti Tanpa Rekod', 'Cuti Sakit (MC)', 'Urusan Rasmi / Mesyuarat', 'Kursus / Bengkel', 'Cuti Kecemasan', 'Urusan Peribadi', 'Temujanji Doktor'];
         const TIME_POINTS = ['7:00 AM', '7:10 AM', '7:40 AM', '8:10 AM', '8:40 AM', '9:10 AM', '9:40 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM', '3:00 PM', '5:00 PM'];
 
-        // --- STATE ---
         let allRecords = [];
         let currentFilterCat = 'SEMUA';
         let currentFilterDate = new Date().toISOString().split('T')[0];
         let editingId = null;
         let unsubscribe = null;
 
-        // --- DOM ---
         const staffSelect = document.getElementById('staffSelect');
         const reasonSelect = document.getElementById('reasonSelect');
         const startTimeSelect = document.getElementById('startTime');
@@ -273,7 +275,6 @@
         const liveStatus = document.getElementById('liveStatus');
 
         function init() {
-            // Dropdowns
             ['PENTADBIR', 'GURU', 'AKP'].forEach(cat => {
                 const group = document.createElement('optgroup'); group.label = cat;
                 STAFF_LIST.filter(s => s.cat === cat).forEach(s => group.appendChild(new Option(s.name, s.name)));
@@ -292,7 +293,6 @@
             document.getElementById('endDate').value = currentFilterDate;
             filterDateInput.value = currentFilterDate;
 
-            // Auth First, then Listener
             auth.onAuthStateChanged((user) => {
                 if (user) {
                     startFirestoreListener();
@@ -316,7 +316,6 @@
         }
 
         function render() {
-            // FIX: 'dateMatch' was incorrectly named in previous version, changed to 'matchDate'
             const filtered = allRecords.filter(r => {
                 const catMatch = currentFilterCat === 'SEMUA' || r.category === currentFilterCat;
                 const matchDate = !currentFilterDate || (currentFilterDate >= r.startDate && currentFilterDate <= r.endDate);
@@ -432,15 +431,12 @@
         document.getElementById('presenceForm').onsubmit = async (e) => {
             e.preventDefault();
             if (!auth.currentUser) { alert("Sila tunggu sambungan..."); return; }
-
             const staff = STAFF_LIST.find(s => s.name === staffSelect.value);
             let timeStr = 'Sepanjang Hari';
             if(startTimeSelect.value && endTimeSelect.value) timeStr = `${startTimeSelect.value} - ${endTimeSelect.value}`;
             else if(startTimeSelect.value) timeStr = `Bermula ${startTimeSelect.value}`;
-
             submitBtn.disabled = true;
             submitBtn.innerText = "Menghantar...";
-
             try {
                 const data = {
                     staffName: staffSelect.value,
@@ -452,7 +448,6 @@
                     location: reasonSelect.value === 'Urusan Rasmi / Mesyuarat' ? document.getElementById('locationInput').value : '',
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
-
                 const colRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
                 if (editingId) await colRef.doc(editingId).update(data);
                 else { data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await colRef.add(data); }
@@ -463,21 +458,44 @@
 
         document.getElementById('globalResetBtn').onclick = () => {
             document.getElementById('jwIcInput').value = "";
+            document.getElementById('jwResetDate').value = currentFilterDate || "";
             document.getElementById('authError').classList.add('hidden');
             document.getElementById('authModal').classList.remove('hidden');
         };
 
         document.getElementById('confirmAuthBtn').onclick = async () => {
             const member = JW_TEAM.find(m => m.name === document.getElementById('jwNameSelect').value);
+            const resetDate = document.getElementById('jwResetDate').value;
+            
             if (member && member.ic === document.getElementById('jwIcInput').value.trim()) {
-                if(confirm("Tindakan ini akan MEMADAM SEMUA rekod dalam sistem. Anda pasti?")) {
+                let toDelete = [];
+                let msg = "";
+                
+                if (resetDate) {
+                    // Filter rekod yang aktif pada tarikh tersebut
+                    toDelete = allRecords.filter(r => resetDate >= r.startDate && resetDate <= r.endDate);
+                    msg = `Adakah anda pasti mahu memadam SEMUA (${toDelete.length}) rekod pada tarikh ${resetDate}?`;
+                } else {
+                    toDelete = allRecords;
+                    msg = "Tindakan ini akan MEMADAM SEMUA rekod dalam sistem secara kekal. Anda pasti?";
+                }
+
+                if (toDelete.length === 0) {
+                    alert("Tiada rekod ditemui untuk tindakan ini.");
+                    return;
+                }
+
+                if(confirm(msg)) {
                     document.getElementById('authModal').classList.add('hidden');
                     const batch = db.batch();
-                    allRecords.forEach(r => batch.delete(db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan').doc(r.id)));
+                    const colPath = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
+                    toDelete.forEach(r => batch.delete(colPath.doc(r.id)));
                     await batch.commit();
-                    alert("Sistem telah di-reset sepenuhnya.");
+                    alert(resetDate ? `Rekod pada ${resetDate} telah dipadam.` : "Sistem telah di-reset sepenuhnya.");
                 }
-            } else { document.getElementById('authError').classList.remove('hidden'); }
+            } else { 
+                document.getElementById('authError').classList.remove('hidden'); 
+            }
         };
 
         document.getElementById('toggleFormBtn').onclick = () => { formSection.classList.toggle('hidden'); if(!formSection.classList.contains('hidden')) resetForm(); };
