@@ -21,6 +21,7 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        #authModal { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans">
@@ -41,7 +42,7 @@
                 </button>
             </div>
 
-            <!-- Form Section (Hidden by default) -->
+            <!-- Form Section -->
             <div id="formSection" class="hidden bg-white rounded-2xl p-6 mb-8 shadow-md border border-slate-200 animate-fade-in">
                 <h2 id="formTitle" class="text-xl font-bold mb-6 flex items-center gap-2 border-b pb-3 text-blue-800">
                     <i data-lucide="file-text"></i> Borang Maklumat
@@ -93,26 +94,34 @@
                             Simpan Rekod
                         </button>
                         <button type="button" id="cancelEditBtn" class="hidden bg-slate-200 text-slate-600 px-6 py-4 rounded-xl font-bold hover:bg-slate-300 transition-all">
-                            Batal
+                            Batal Edit
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- Filter Section -->
-            <div class="bg-white p-4 rounded-2xl mb-8 shadow-sm border border-slate-200 flex flex-col lg:flex-row gap-6 items-center justify-between">
-                <div class="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 no-scrollbar" id="categoryFilters">
-                    <i data-lucide="filter" class="text-slate-400 w-5 h-5 flex-shrink-0"></i>
-                    <button data-cat="SEMUA" class="filter-btn px-5 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-md transition-all">SEMUA</button>
-                    <button data-cat="PENTADBIR" class="filter-btn px-5 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">PENTADBIR</button>
-                    <button data-cat="GURU" class="filter-btn px-5 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">GURU</button>
-                    <button data-cat="AKP" class="filter-btn px-5 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">AKP</button>
+            <!-- Filter & Global Reset -->
+            <div class="bg-white p-4 rounded-2xl mb-8 shadow-sm border border-slate-200 flex flex-col gap-4">
+                <div class="flex flex-col lg:flex-row gap-6 items-center justify-between">
+                    <div class="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 no-scrollbar" id="categoryFilters">
+                        <i data-lucide="filter" class="text-slate-400 w-5 h-5 flex-shrink-0"></i>
+                        <button data-cat="SEMUA" class="filter-btn px-5 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-md transition-all">SEMUA</button>
+                        <button data-cat="PENTADBIR" class="filter-btn px-5 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">PENTADBIR</button>
+                        <button data-cat="GURU" class="filter-btn px-5 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">GURU</button>
+                        <button data-cat="AKP" class="filter-btn px-5 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">AKP</button>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 w-full lg:w-auto border-t lg:border-t-0 pt-4 lg:pt-0">
+                        <i data-lucide="calendar" class="text-slate-400 w-5 h-5"></i>
+                        <input type="date" id="filterDate" class="bg-slate-100 border-none rounded-xl p-2 px-4 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none w-full">
+                        <button id="resetDate" class="text-xs text-blue-600 font-bold hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors whitespace-nowrap">Reset Tarikh</button>
+                    </div>
                 </div>
                 
-                <div class="flex items-center gap-3 w-full lg:w-auto border-t lg:border-t-0 pt-4 lg:pt-0">
-                    <i data-lucide="calendar" class="text-slate-400 w-5 h-5"></i>
-                    <input type="date" id="filterDate" class="bg-slate-100 border-none rounded-xl p-2 px-4 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none w-full">
-                    <button id="resetDate" class="text-xs text-blue-600 font-bold hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors whitespace-nowrap">Reset</button>
+                <div class="pt-4 border-t border-slate-100 flex justify-end">
+                    <button id="globalResetBtn" class="flex items-center gap-2 bg-red-50 text-red-600 px-5 py-2 rounded-xl text-xs font-bold hover:bg-red-100 transition-all border border-red-100">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Reset Data (Team JW)
+                    </button>
                 </div>
             </div>
 
@@ -124,8 +133,7 @@
                 </div>
 
                 <div id="recordsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <!-- Cards will be injected here -->
-                    <div class="md:col-span-2 bg-white rounded-3xl p-16 text-center border-2 border-dashed border-slate-200 text-slate-400">
+                    <div class="md:col-span-2 bg-white rounded-3xl p-16 text-center border-2 border-dashed border-slate-200 text-slate-400 font-medium">
                         Memuatkan data...
                     </div>
                 </div>
@@ -137,8 +145,40 @@
         </div>
     </div>
 
+    <!-- Auth Modal for Global Reset -->
+    <div id="authModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in border border-blue-100">
+            <div class="bg-red-600 p-6 text-white">
+                <h3 class="text-xl font-bold flex items-center gap-2">
+                    <i data-lucide="shield-alert"></i> Pengesahan Team JW
+                </h3>
+                <p class="text-red-100 text-xs mt-1 uppercase tracking-wider font-semibold">Tindakan ini akan memadam semua data!</p>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Pilih Nama Anda</label>
+                    <select id="jwNameSelect" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Pilih Nama --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">No. Kad Pengenalan</label>
+                    <input type="password" id="jwIcInput" placeholder="Sila masukkan no IC tanpa '-'" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="text-[10px] text-slate-500 mt-2 font-medium italic">Sila masukkan no IC tanpa "-" (Hanya team JW dapat reset. Terima kasih)</p>
+                </div>
+                <div id="authError" class="hidden p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100">
+                    Maklumat tidak sah. Akses dinafikan.
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button id="cancelAuthBtn" class="flex-1 bg-slate-100 text-slate-600 p-3 rounded-xl font-bold hover:bg-slate-200 transition-all">Batal</button>
+                    <button id="confirmAuthBtn" class="flex-1 bg-red-600 text-white p-3 rounded-xl font-bold hover:bg-red-700 shadow-md transition-all uppercase">Sahkan Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // --- KONFIGURASI FIREBASE ---
+        // --- CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyBQFszT3jQJiA-FsNgtc4T0YC88bly0ZyQ",
             authDomain: "keberadaan-staff.firebaseapp.com",
@@ -154,7 +194,17 @@
         const auth = firebase.auth();
         const appId = "keberadaan-staff-miri";
 
-        // --- DATA STAFF 2026 ---
+        // --- AUTHORIZED TEAM JW (Jimmy Updated) ---
+        const JW_TEAM = [
+            { name: 'MOHAMAD ABIDIN BIN SIPEK', ic: '910110136471' },
+            { name: 'AIDA MASTURINA BINTI HAMKA', ic: '990507135736' },
+            { name: 'JIMMY ANAK PETER', ic: '910412125719' },
+            { name: 'KHAIRI BIN SAHARI', ic: '920329136299' },
+            { name: 'MOHD RAFEEQ BIN SULAIMAN', ic: '920307136255' },
+            { name: 'NURUL HUDA BTE MOHD IHWAN', ic: '900224137086' }
+        ];
+
+        // --- STAFF DATA ---
         const STAFF_LIST = [
             { name: 'AZIZ BIN TAHIR', cat: 'PENTADBIR' },
             { name: 'MOHAMAD ABIDIN BIN SIPEK', cat: 'PENTADBIR' },
@@ -199,16 +249,8 @@
             { name: 'ALEXANDER LIPA ANAK RANTIE', cat: 'AKP' }
         ];
 
-        const REASONS = [
-            'Cuti Rehat Khas (CRK)', 'Cuti Rehat (CR)', 'Cuti Tanpa Rekod', 
-            'Cuti Sakit (MC)', 'Urusan Rasmi / Mesyuarat', 'Kursus / Bengkel', 
-            'Cuti Kecemasan', 'Urusan Peribadi', 'Temujanji Doktor'
-        ];
-
-        const TIME_POINTS = [
-            '7:00 AM', '7:10 AM', '7:40 AM', '8:10 AM', '8:40 AM', '9:10 AM', '9:40 AM', 
-            '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM', '3:00 PM', '5:00 PM'
-        ];
+        const REASONS = ['Cuti Rehat Khas (CRK)', 'Cuti Rehat (CR)', 'Cuti Tanpa Rekod', 'Cuti Sakit (MC)', 'Urusan Rasmi / Mesyuarat', 'Kursus / Bengkel', 'Cuti Kecemasan', 'Urusan Peribadi', 'Temujanji Doktor'];
+        const TIME_POINTS = ['7:00 AM', '7:10 AM', '7:40 AM', '8:10 AM', '8:40 AM', '9:10 AM', '9:40 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM', '3:00 PM', '5:00 PM'];
 
         // --- STATE ---
         let allRecords = [];
@@ -216,37 +258,28 @@
         let currentFilterDate = new Date().toISOString().split('T')[0];
         let editingId = null;
 
-        // --- DOM ELEMENTS ---
+        // --- DOM ---
         const staffSelect = document.getElementById('staffSelect');
         const reasonSelect = document.getElementById('reasonSelect');
         const startTimeSelect = document.getElementById('startTime');
         const endTimeSelect = document.getElementById('endTime');
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
         const filterDateInput = document.getElementById('filterDate');
         const recordsGrid = document.getElementById('recordsGrid');
         const formSection = document.getElementById('formSection');
         const submitBtn = document.getElementById('submitBtn');
         const cancelEditBtn = document.getElementById('cancelEditBtn');
         const formTitle = document.getElementById('formTitle');
+        const jwNameSelect = document.getElementById('jwNameSelect');
 
-        // --- INIT ---
         function init() {
-            // Fill Staff
+            // Fill Selects
             ['PENTADBIR', 'GURU', 'AKP'].forEach(cat => {
-                const group = document.createElement('optgroup');
-                group.label = cat;
-                STAFF_LIST.filter(s => s.cat === cat).forEach(s => {
-                    const opt = new Option(s.name, s.name);
-                    group.appendChild(opt);
-                });
+                const group = document.createElement('optgroup'); group.label = cat;
+                STAFF_LIST.filter(s => s.cat === cat).forEach(s => group.appendChild(new Option(s.name, s.name)));
                 staffSelect.appendChild(group);
             });
-
-            // Fill Reasons
+            JW_TEAM.forEach(m => jwNameSelect.appendChild(new Option(m.name, m.name)));
             REASONS.forEach(r => reasonSelect.add(new Option(r, r)));
-
-            // Fill Time
             startTimeSelect.add(new Option('Dari Jam...', ''));
             endTimeSelect.add(new Option('Hingga Jam...', ''));
             TIME_POINTS.forEach(t => {
@@ -254,25 +287,19 @@
                 endTimeSelect.add(new Option(t, t));
             });
 
-            // Default dates
-            startDateInput.value = currentFilterDate;
-            endDateInput.value = currentFilterDate;
+            document.getElementById('startDate').value = currentFilterDate;
+            document.getElementById('endDate').value = currentFilterDate;
             filterDateInput.value = currentFilterDate;
 
-            // Auth
-            auth.signInAnonymously().catch(err => console.error("Auth Fail", err));
-
-            // Firestore Listen
+            auth.signInAnonymously();
             db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan')
                 .onSnapshot(snapshot => {
                     allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     render();
-                }, err => console.error("Firestore Fail", err));
-
+                });
             lucide.createIcons();
         }
 
-        // --- RENDER ---
         function render() {
             const filtered = allRecords.filter(r => {
                 const catMatch = currentFilterCat === 'SEMUA' || r.category === currentFilterCat;
@@ -283,53 +310,39 @@
             document.getElementById('recordCount').innerText = `(${filtered.length})`;
 
             if (filtered.length === 0) {
-                recordsGrid.innerHTML = `
-                    <div class="md:col-span-2 bg-white rounded-3xl p-16 text-center border-2 border-dashed border-slate-200">
-                        <div class="bg-slate-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i data-lucide="search" class="text-slate-300 w-8 h-8"></i>
-                        </div>
-                        <p class="text-slate-400 font-medium">Tiada rekod keberadaan.</p>
-                    </div>`;
+                recordsGrid.innerHTML = `<div class="md:col-span-2 bg-white rounded-3xl p-16 text-center border-2 border-dashed border-slate-200 text-slate-400 font-medium">Tiada rekod keberadaan ditemui.</div>`;
             } else {
                 recordsGrid.innerHTML = filtered.map(rec => `
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-all group border-l-4 border-l-blue-600 animate-fade-in">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-all border-l-4 border-l-blue-600 animate-fade-in relative group">
                         <div class="flex justify-between items-start mb-4">
                             <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
                                 rec.category === 'PENTADBIR' ? 'bg-purple-100 text-purple-700' :
                                 rec.category === 'GURU' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'
                             }">${rec.category}</span>
-                            <div class="flex gap-2">
-                                <button onclick="editRecord('${rec.id}')" class="text-slate-300 hover:text-blue-600 transition-colors p-1">
+                            
+                            <!-- ACTIONS FOR USERS TO CORRECT MISTAKES -->
+                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="editRecord('${rec.id}')" class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-colors" title="Edit">
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </button>
-                                <button onclick="deleteRecord('${rec.id}')" class="text-slate-300 hover:text-red-500 transition-colors p-1">
+                                <button onclick="deleteRecord('${rec.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Padam">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             </div>
                         </div>
-                        <h4 class="font-extrabold text-xl mb-4 text-slate-800 leading-tight">${rec.staffName}</h4>
-                        <div class="space-y-3">
+                        <h4 class="font-extrabold text-xl mb-4 text-slate-800 leading-tight uppercase">${rec.staffName}</h4>
+                        <div class="space-y-3 text-sm">
                             <div class="flex flex-col gap-1 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <div class="flex items-center gap-2 text-blue-700 font-bold text-xs uppercase tracking-wide">
-                                    <i data-lucide="calendar" class="w-3 h-3"></i> Tempoh Tarikh
-                                </div>
-                                <div class="flex items-center gap-2 text-sm font-semibold text-slate-700 mt-1">
-                                    <span>${formatDateMalay(rec.startDate)}</span>
-                                    ${rec.endDate && rec.endDate !== rec.startDate ? `<i data-lucide="arrow-right" class="w-3 h-3 text-slate-400"></i> <span>${formatDateMalay(rec.endDate)}</span>` : ''}
-                                </div>
+                                <span class="text-blue-700 font-bold text-xs">TARIKH</span>
+                                <span class="font-semibold text-slate-700 uppercase">${formatDateMalay(rec.startDate)} ${rec.endDate !== rec.startDate ? ' -> ' + formatDateMalay(rec.endDate) : ''}</span>
                             </div>
-                            <div class="flex items-center gap-2 text-sm font-medium text-slate-600 px-1">
+                            <div class="flex items-center gap-2 font-bold text-slate-600 px-1">
                                 <i data-lucide="clock" class="w-4 h-4 text-orange-500"></i>
-                                <span class="${rec.time === 'Sepanjang Hari' ? 'font-bold text-slate-500' : 'font-bold text-blue-800'}">${rec.time}</span>
+                                <span class="${rec.time === 'Sepanjang Hari' ? 'text-slate-400 font-medium' : 'text-blue-900 font-black'} uppercase">${rec.time}</span>
                             </div>
-                            <div class="pt-3 border-t border-slate-100 mt-2">
-                                <div class="flex items-start gap-2">
-                                    <i data-lucide="file-text" class="w-4 h-4 text-blue-500 mt-0.5"></i>
-                                    <div>
-                                        <span class="font-bold text-slate-800 text-sm">${rec.reason}</span>
-                                        ${rec.location ? `<div class="mt-2 flex items-center gap-1.5 text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg text-xs font-bold w-fit"><i data-lucide="map-pin" class="w-3 h-3"></i> LOKASI: ${rec.location}</div>` : ''}
-                                    </div>
-                                </div>
+                            <div class="pt-2 border-t font-bold">
+                                <span class="text-slate-800 uppercase">${rec.reason}</span>
+                                ${rec.location ? `<div class="mt-1 text-blue-700 text-xs font-black uppercase"><i data-lucide="map-pin" class="inline w-3 h-3"></i> LOKASI: ${rec.location}</div>` : ''}
                             </div>
                         </div>
                     </div>
@@ -344,160 +357,115 @@
             return `${days[d.getDay()]}, ${d.toLocaleDateString('ms-MY')}`;
         }
 
-        // --- ACTIONS ---
+        // --- CRUD ACTIONS ---
         window.editRecord = (id) => {
-            const record = allRecords.find(r => r.id === id);
-            if (!record) return;
-
+            const rec = allRecords.find(r => r.id === id);
+            if (!rec) return;
             editingId = id;
-            staffSelect.value = record.staffName;
-            reasonSelect.value = record.reason;
-            startDateInput.value = record.startDate;
-            endDateInput.value = record.endDate;
-            
-            // Handle Time
-            if (record.time === 'Sepanjang Hari') {
-                startTimeSelect.value = '';
-                endTimeSelect.value = '';
-            } else if (record.time.includes(' - ')) {
-                const parts = record.time.split(' - ');
-                startTimeSelect.value = parts[0];
-                endTimeSelect.value = parts[1];
-            } else if (record.time.startsWith('Bermula ')) {
-                startTimeSelect.value = record.time.replace('Bermula ', '');
-                endTimeSelect.value = '';
+            staffSelect.value = rec.staffName;
+            reasonSelect.value = rec.reason;
+            document.getElementById('startDate').value = rec.startDate;
+            document.getElementById('endDate').value = rec.endDate;
+            document.getElementById('locationInput').value = rec.location || '';
+            document.getElementById('locationField').classList.toggle('hidden', rec.reason !== 'Urusan Rasmi / Mesyuarat');
+
+            // Set time
+            if (rec.time === 'Sepanjang Hari') {
+                startTimeSelect.value = ''; endTimeSelect.value = '';
+            } else if (rec.time.includes(' - ')) {
+                const parts = rec.time.split(' - ');
+                startTimeSelect.value = parts[0]; endTimeSelect.value = parts[1];
+            } else {
+                startTimeSelect.value = rec.time.replace('Bermula ', ''); endTimeSelect.value = '';
             }
 
-            document.getElementById('locationInput').value = record.location || '';
-            document.getElementById('locationField').classList.toggle('hidden', record.reason !== 'Urusan Rasmi / Mesyuarat');
-
-            // UI Changes
             formSection.classList.remove('hidden');
-            formTitle.innerHTML = '<i data-lucide="edit-3" class="text-blue-600"></i> Kemaskini Maklumat';
+            formTitle.innerHTML = `<i data-lucide="edit-3"></i> Kemaskini Rekod`;
             submitBtn.innerText = "Kemaskini Rekod";
             cancelEditBtn.classList.remove('hidden');
-            
-            window.scrollTo({ top: formSection.offsetTop - 20, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             lucide.createIcons();
         };
 
-        const resetForm = () => {
+        window.deleteRecord = async (id) => {
+            if (confirm("Adakah anda pasti mahu memadam rekod ini?")) {
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan').doc(id).delete();
+                if(editingId === id) resetForm();
+            }
+        };
+
+        function resetForm() {
             editingId = null;
             document.getElementById('presenceForm').reset();
-            formTitle.innerHTML = '<i data-lucide="file-text" class="text-blue-800"></i> Borang Maklumat';
+            formTitle.innerHTML = `<i data-lucide="file-text"></i> Borang Maklumat`;
             submitBtn.innerText = "Simpan Rekod";
             cancelEditBtn.classList.add('hidden');
             document.getElementById('locationField').classList.add('hidden');
-            
-            // Reset dates to current filter date
-            startDateInput.value = currentFilterDate || new Date().toISOString().split('T')[0];
-            endDateInput.value = currentFilterDate || new Date().toISOString().split('T')[0];
+        }
+
+        cancelEditBtn.onclick = resetForm;
+
+        // --- GLOBAL RESET (TEAM JW) ---
+        document.getElementById('globalResetBtn').onclick = () => {
+            jwIcInput.value = "";
+            document.getElementById('authError').classList.add('hidden');
+            document.getElementById('authModal').classList.remove('hidden');
         };
 
-        window.deleteRecord = async (id) => {
-            if(!confirm("Padam rekod ini?")) return;
-            try {
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan').doc(id).delete();
-                if (editingId === id) resetForm();
-            } catch (err) {
-                console.error(err);
-            }
+        document.getElementById('confirmAuthBtn').onclick = async () => {
+            const member = JW_TEAM.find(m => m.name === document.getElementById('jwNameSelect').value);
+            if (member && member.ic === document.getElementById('jwIcInput').value.trim()) {
+                if(confirm("Tindakan ini akan MEMADAM SEMUA rekod dalam sistem. Adakah anda benar-benar pasti?")) {
+                    document.getElementById('authModal').classList.add('hidden');
+                    const batch = db.batch();
+                    allRecords.forEach(r => batch.delete(db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan').doc(r.id)));
+                    await batch.commit();
+                    alert("Sistem telah di-reset sepenuhnya.");
+                }
+            } else { document.getElementById('authError').classList.remove('hidden'); }
         };
 
-        // --- EVENTS ---
-        document.getElementById('toggleFormBtn').addEventListener('click', () => {
-            if (!formSection.classList.contains('hidden') && editingId) {
-                if(confirm("Batal proses kemaskini?")) resetForm();
-                else return;
-            }
-            formSection.classList.toggle('hidden');
-            if (!formSection.classList.contains('hidden')) resetForm();
-        });
+        // --- EVENT HANDLERS ---
+        document.getElementById('toggleFormBtn').onclick = () => { formSection.classList.toggle('hidden'); resetForm(); };
+        reasonSelect.onchange = () => document.getElementById('locationField').classList.toggle('hidden', reasonSelect.value !== 'Urusan Rasmi / Mesyuarat');
+        document.getElementById('cancelAuthBtn').onclick = () => document.getElementById('authModal').classList.add('hidden');
 
-        cancelEditBtn.addEventListener('click', resetForm);
-
-        reasonSelect.addEventListener('change', () => {
-            const field = document.getElementById('locationField');
-            field.classList.toggle('hidden', reasonSelect.value !== 'Urusan Rasmi / Mesyuarat');
-        });
-
-        document.getElementById('presenceForm').addEventListener('submit', async (e) => {
+        document.getElementById('presenceForm').onsubmit = async (e) => {
             e.preventDefault();
-            const staffName = staffSelect.value;
-            const reason = reasonSelect.value;
-            const sDate = startDateInput.value;
-            const eDate = endDateInput.value;
-            const sTime = startTimeSelect.value;
-            const eTime = endTimeSelect.value;
-            const loc = document.getElementById('locationInput').value;
-
-            if(!staffName || !reason || !sDate) return;
-
-            const staff = STAFF_LIST.find(s => s.name === staffName);
+            const staff = STAFF_LIST.find(s => s.name === staffSelect.value);
             let timeStr = 'Sepanjang Hari';
-            if(sTime && eTime) timeStr = `${sTime} - ${eTime}`;
-            else if(sTime) timeStr = `Bermula ${sTime}`;
+            if(startTimeSelect.value && endTimeSelect.value) timeStr = `${startTimeSelect.value} - ${endTimeSelect.value}`;
+            else if(startTimeSelect.value) timeStr = `Bermula ${startTimeSelect.value}`;
 
             submitBtn.disabled = true;
-            submitBtn.innerText = editingId ? "Mengemaskini..." : "Menyimpan...";
-
             try {
                 const data = {
-                    staffName,
+                    staffName: staffSelect.value,
                     category: staff.cat,
-                    startDate: sDate,
-                    endDate: eDate || sDate,
+                    startDate: document.getElementById('startDate').value,
+                    endDate: document.getElementById('endDate').value,
                     time: timeStr,
-                    reason,
-                    location: reason === 'Urusan Rasmi / Mesyuarat' ? loc : '',
+                    reason: reasonSelect.value,
+                    location: reasonSelect.value === 'Urusan Rasmi / Mesyuarat' ? document.getElementById('locationInput').value : '',
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
-
                 const col = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
-                
-                if (editingId) {
-                    await col.doc(editingId).update(data);
-                } else {
-                    data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                    await col.add(data);
-                }
-                
-                resetForm();
-                formSection.classList.add('hidden');
-            } catch (err) {
-                console.error(err);
-                alert("Gagal memproses data.");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = editingId ? "Kemaskini Rekod" : "Simpan Rekod";
-            }
-        });
+                if (editingId) await col.doc(editingId).update(data);
+                else { data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await col.add(data); }
+                resetForm(); formSection.classList.add('hidden');
+            } catch (err) { console.error(err); } finally { submitBtn.disabled = false; }
+        };
 
         document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-btn').forEach(b => {
-                    b.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
-                    b.classList.add('bg-slate-100', 'text-slate-600');
-                });
-                btn.classList.add('bg-blue-600', 'text-white', 'shadow-md');
-                btn.classList.remove('bg-slate-100', 'text-slate-600');
-                currentFilterCat = btn.getAttribute('data-cat');
-                render();
-            });
+            btn.onclick = () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn px-5 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 transition-all');
+                btn.className = 'filter-btn px-5 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-md transition-all';
+                currentFilterCat = btn.getAttribute('data-cat'); render();
+            };
         });
+        filterDateInput.onchange = () => { currentFilterDate = filterDateInput.value; render(); };
+        document.getElementById('resetDate').onclick = () => { currentFilterDate = ''; filterDateInput.value = ''; render(); };
 
-        filterDateInput.addEventListener('change', () => {
-            currentFilterDate = filterDateInput.value;
-            render();
-        });
-
-        document.getElementById('resetDate').addEventListener('click', () => {
-            currentFilterDate = '';
-            filterDateInput.value = '';
-            render();
-        });
-
-        // Start
         init();
     </script>
 </body>
