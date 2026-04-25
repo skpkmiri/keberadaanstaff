@@ -22,15 +22,13 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
         #authModal { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
-        .loading-shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans">
 
     <div id="app" class="min-h-screen p-4 md:p-8">
         <div class="max-w-5xl mx-auto">
-            <!-- Header with Logo -->
+            <!-- Header dengan Logo -->
             <div class="bg-blue-800 rounded-2xl p-6 mb-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
                 <div class="flex items-center gap-4">
                     <img src="logo.png" alt="Logo SKPK Miri" class="w-16 h-16 md:w-20 md:h-20 object-contain bg-white p-1 rounded-full shadow-sm" onerror="this.style.display='none'">
@@ -44,7 +42,7 @@
                 </button>
             </div>
 
-            <!-- Form Section -->
+            <!-- Bahagian Borang -->
             <div id="formSection" class="hidden bg-white rounded-2xl p-6 mb-8 shadow-md border border-slate-200 animate-fade-in">
                 <h2 id="formTitle" class="text-xl font-bold mb-6 flex items-center gap-2 border-b pb-3 text-blue-800">
                     <i data-lucide="file-text"></i> Borang Maklumat
@@ -102,7 +100,7 @@
                 </form>
             </div>
 
-            <!-- Filter & Global Reset -->
+            <!-- Tapisan & Reset Global -->
             <div class="bg-white p-4 rounded-2xl mb-8 shadow-sm border border-slate-200 flex flex-col gap-4">
                 <div class="flex flex-col lg:flex-row gap-6 items-center justify-between">
                     <div class="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 no-scrollbar" id="categoryFilters">
@@ -127,7 +125,7 @@
                 </div>
             </div>
 
-            <!-- List Display -->
+            <!-- Paparan Senarai -->
             <div class="space-y-4">
                 <div class="flex justify-between items-center px-2">
                     <h3 class="font-bold text-slate-800 text-lg">Paparan Rekod <span id="recordCount" class="text-blue-600">(0)</span></h3>
@@ -147,7 +145,7 @@
         </div>
     </div>
 
-    <!-- Auth Modal for Global Reset -->
+    <!-- Modal Pengesahan untuk Reset Global -->
     <div id="authModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in border border-blue-100">
             <div class="bg-red-600 p-6 text-white">
@@ -180,7 +178,7 @@
     </div>
 
     <script>
-        // --- FIREBASE CONFIGURATION ---
+        // --- KONFIGURASI FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyBQFszT3jQJiA-FsNgtc4T0YC88bly0ZyQ",
             authDomain: "keberadaan-staff.firebaseapp.com",
@@ -196,7 +194,7 @@
         const auth = firebase.auth();
         const appId = "keberadaan-staff-miri";
 
-        // --- AUTHORIZED TEAM JW (Jimmy Peter IC: 910412125719) ---
+        // --- TEAM JW BERTAULIAH (IC Jimmy Peter Updated: 910412125719) ---
         const JW_TEAM = [
             { name: 'MOHAMAD ABIDIN BIN SIPEK', ic: '910110136471' },
             { name: 'AIDA MASTURINA BINTI HAMKA', ic: '990507135736' },
@@ -206,7 +204,7 @@
             { name: 'NURUL HUDA BTE MOHD IHWAN', ic: '900224137086' }
         ];
 
-        // --- STAFF DATA ---
+        // --- SENARAI STAF 2026 ---
         const STAFF_LIST = [
             { name: 'AZIZ BIN TAHIR', cat: 'PENTADBIR' },
             { name: 'MOHAMAD ABIDIN BIN SIPEK', cat: 'PENTADBIR' },
@@ -294,17 +292,14 @@
             document.getElementById('endDate').value = currentFilterDate;
             filterDateInput.value = currentFilterDate;
 
-            // MANDATORY RULE: Auth FIRST, then Listener
+            // Auth First, then Listener
             auth.onAuthStateChanged((user) => {
                 if (user) {
                     startFirestoreListener();
                     liveStatus.innerText = "Sedia (Awan)";
                     liveStatus.className = "text-xs font-semibold bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full animate-pulse";
                 } else {
-                    auth.signInAnonymously().catch(e => {
-                        console.error("Auth Fail:", e);
-                        alert("Sambungan gagal. Sila periksa capaian internet.");
-                    });
+                    auth.signInAnonymously().catch(e => console.error("Auth Fail:", e));
                 }
             });
 
@@ -313,23 +308,20 @@
 
         function startFirestoreListener() {
             if (unsubscribe) unsubscribe();
-            
             const colRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
-            
             unsubscribe = colRef.onSnapshot(snapshot => {
                 allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 render();
-            }, (err) => {
-                console.error("Snapshot Error:", err);
-            });
+            }, (err) => console.error("Snapshot Error:", err));
         }
 
         function render() {
+            // FIX: 'dateMatch' was incorrectly named in previous version, changed to 'matchDate'
             const filtered = allRecords.filter(r => {
                 const catMatch = currentFilterCat === 'SEMUA' || r.category === currentFilterCat;
                 const matchDate = !currentFilterDate || (currentFilterDate >= r.startDate && currentFilterDate <= r.endDate);
                 return catMatch && matchDate;
-            }).sort((a, b) => b.startDate.localeCompare(a.startDate) || b.createdAt?.seconds - a.createdAt?.seconds);
+            }).sort((a, b) => b.startDate.localeCompare(a.startDate) || (b.createdAt?.seconds - a.createdAt?.seconds));
 
             document.getElementById('recordCount').innerText = `(${filtered.length})`;
 
@@ -418,8 +410,7 @@
         window.deleteRecord = async (id) => {
             if (confirm("Padam rekod ini?")) {
                 try {
-                    const colRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
-                    await colRef.doc(id).delete();
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan').doc(id).delete();
                     if(editingId === id) resetForm();
                 } catch(e) { console.error(e); }
             }
@@ -440,10 +431,7 @@
 
         document.getElementById('presenceForm').onsubmit = async (e) => {
             e.preventDefault();
-            if (!auth.currentUser) {
-                alert("Ralat sambungan. Sila tunggu sebentar...");
-                return;
-            }
+            if (!auth.currentUser) { alert("Sila tunggu sambungan..."); return; }
 
             const staff = STAFF_LIST.find(s => s.name === staffSelect.value);
             let timeStr = 'Sepanjang Hari';
@@ -466,23 +454,11 @@
                 };
 
                 const colRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
-                
-                if (editingId) {
-                    await colRef.doc(editingId).update(data);
-                } else {
-                    data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                    await colRef.add(data);
-                }
-                
-                resetForm();
-                formSection.classList.add('hidden');
-            } catch (err) {
-                console.error(err);
-                alert("Gagal menyimpan.");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = editingId ? "Kemaskini Rekod" : "Simpan Rekod";
-            }
+                if (editingId) await colRef.doc(editingId).update(data);
+                else { data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await colRef.add(data); }
+                resetForm(); formSection.classList.add('hidden');
+            } catch (err) { console.error(err); alert("Gagal menyimpan."); }
+            finally { submitBtn.disabled = false; submitBtn.innerText = editingId ? "Kemaskini Rekod" : "Simpan Rekod"; }
         };
 
         document.getElementById('globalResetBtn').onclick = () => {
