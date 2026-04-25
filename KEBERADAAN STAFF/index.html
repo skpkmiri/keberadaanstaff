@@ -62,11 +62,12 @@
                         </select>
                     </div>
 
+                    <!-- Ruangan Lokasi (Kini muncul untuk Urusan Rasmi & Kursus/Bengkel) -->
                     <div id="locationField" class="hidden md:col-span-2 space-y-2">
                         <label class="block text-sm font-bold text-slate-700">Nyatakan Tempat / Lokasi</label>
                         <div class="relative">
                             <i data-lucide="map-pin" class="absolute left-3 top-3 text-slate-400 w-5 h-5"></i>
-                            <input type="text" id="locationInput" placeholder="Sila nyatakan tempat urusan rasmi" class="w-full p-3 pl-10 bg-blue-50 border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                            <input type="text" id="locationInput" placeholder="Sila nyatakan tempat" class="w-full p-3 pl-10 bg-blue-50 border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                     </div>
 
@@ -315,6 +316,12 @@
             }, (err) => console.error("Snapshot Error:", err));
         }
 
+        function formatDateTime(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
         function render() {
             const filtered = allRecords.filter(r => {
                 const catMatch = currentFilterCat === 'SEMUA' || r.category === currentFilterCat;
@@ -354,7 +361,7 @@
                         <h4 class="font-extrabold text-xl mb-4 text-slate-800 leading-tight uppercase">${rec.staffName}</h4>
                         <div class="space-y-3 text-sm">
                             <div class="flex flex-col gap-1 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <span class="text-blue-700 font-bold text-xs uppercase">TARIKH</span>
+                                <span class="text-blue-700 font-bold text-xs uppercase">TEMPOH</span>
                                 <span class="font-semibold text-slate-700 uppercase">${formatDateMalay(rec.startDate)} ${rec.endDate !== rec.startDate ? ' -> ' + formatDateMalay(rec.endDate) : ''}</span>
                             </div>
                             <div class="flex items-center gap-2 font-bold text-slate-600 px-1">
@@ -365,6 +372,9 @@
                                 <span class="text-slate-800 uppercase">${rec.reason}</span>
                                 ${rec.location ? `<div class="mt-1 text-blue-700 text-xs font-black uppercase"><i data-lucide="map-pin" class="inline w-3 h-3"></i> LOKASI: ${rec.location}</div>` : ''}
                             </div>
+                            <div class="pt-2 border-t text-[9px] text-slate-400 italic">
+                                Direkodkan pada: ${formatDateTime(rec.createdAt)}
+                            </div>
                         </div>
                     </div>
                 `).join('');
@@ -373,6 +383,7 @@
         }
 
         function formatDateMalay(dateStr) {
+            if (!dateStr) return '';
             const d = new Date(dateStr);
             const days = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
             return `${days[d.getDay()]}, ${d.toLocaleDateString('ms-MY')}`;
@@ -387,7 +398,10 @@
             document.getElementById('startDate').value = rec.startDate;
             document.getElementById('endDate').value = rec.endDate;
             document.getElementById('locationInput').value = rec.location || '';
-            document.getElementById('locationField').classList.toggle('hidden', rec.reason !== 'Urusan Rasmi / Mesyuarat');
+            
+            // Tunjukkan ruangan lokasi jika perlu
+            const showLoc = rec.reason === 'Urusan Rasmi / Mesyuarat' || rec.reason === 'Kursus / Bengkel';
+            document.getElementById('locationField').classList.toggle('hidden', !showLoc);
 
             if (rec.time === 'Sepanjang Hari') {
                 startTimeSelect.value = ''; endTimeSelect.value = '';
@@ -438,6 +452,7 @@
             submitBtn.disabled = true;
             submitBtn.innerText = "Menghantar...";
             try {
+                const isLocationRequired = reasonSelect.value === 'Urusan Rasmi / Mesyuarat' || reasonSelect.value === 'Kursus / Bengkel';
                 const data = {
                     staffName: staffSelect.value,
                     category: staff.cat,
@@ -445,7 +460,7 @@
                     endDate: document.getElementById('endDate').value,
                     time: timeStr,
                     reason: reasonSelect.value,
-                    location: reasonSelect.value === 'Urusan Rasmi / Mesyuarat' ? document.getElementById('locationInput').value : '',
+                    location: isLocationRequired ? document.getElementById('locationInput').value : '',
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 const colRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
@@ -472,7 +487,6 @@
                 let msg = "";
                 
                 if (resetDate) {
-                    // Filter rekod yang aktif pada tarikh tersebut
                     toDelete = allRecords.filter(r => resetDate >= r.startDate && resetDate <= r.endDate);
                     msg = `Adakah anda pasti mahu memadam SEMUA (${toDelete.length}) rekod pada tarikh ${resetDate}?`;
                 } else {
@@ -499,7 +513,12 @@
         };
 
         document.getElementById('toggleFormBtn').onclick = () => { formSection.classList.toggle('hidden'); if(!formSection.classList.contains('hidden')) resetForm(); };
-        reasonSelect.onchange = () => document.getElementById('locationField').classList.toggle('hidden', reasonSelect.value !== 'Urusan Rasmi / Mesyuarat');
+        
+        reasonSelect.onchange = () => {
+            const showLoc = reasonSelect.value === 'Urusan Rasmi / Mesyuarat' || reasonSelect.value === 'Kursus / Bengkel';
+            document.getElementById('locationField').classList.toggle('hidden', !showLoc);
+        };
+
         document.getElementById('cancelAuthBtn').onclick = () => document.getElementById('authModal').classList.add('hidden');
 
         document.querySelectorAll('.filter-btn').forEach(btn => {
