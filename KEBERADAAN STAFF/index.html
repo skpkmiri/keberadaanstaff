@@ -37,9 +37,15 @@
                         <p class="text-blue-100 opacity-90 text-sm md:text-base">Sistem Keberadaan Staff & Pengurusan Teach-In</p>
                     </div>
                 </div>
-                <button id="toggleFormBtn" class="flex items-center gap-2 bg-white text-blue-800 px-6 py-3 rounded-xl font-bold hover:bg-blue-50 transition-all shadow-lg active:scale-95">
-                    <i data-lucide="plus-circle" class="w-5 h-5"></i> Rekod Keberadaan
-                </button>
+                <div class="flex flex-wrap justify-center gap-3">
+                    <!-- Butang Aktifkan Notifikasi -->
+                    <button id="enableNotifBtn" class="flex items-center gap-2 bg-blue-700 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-600 transition-all shadow-lg active:scale-95 border border-blue-500/30">
+                        <i data-lucide="bell" class="w-5 h-5"></i> <span class="hidden sm:inline">Notifikasi</span>
+                    </button>
+                    <button id="toggleFormBtn" class="flex items-center gap-2 bg-white text-blue-800 px-6 py-3 rounded-xl font-bold hover:bg-blue-50 transition-all shadow-lg active:scale-95">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i> Rekod Keberadaan
+                    </button>
+                </div>
             </div>
 
             <!-- Bahagian Borang -->
@@ -62,7 +68,7 @@
                         </select>
                     </div>
 
-                    <!-- Ruangan Lokasi (Kini muncul untuk Urusan Rasmi & Kursus/Bengkel) -->
+                    <!-- Ruangan Lokasi -->
                     <div id="locationField" class="hidden md:col-span-2 space-y-2">
                         <label class="block text-sm font-bold text-slate-700">Nyatakan Tempat / Lokasi</label>
                         <div class="relative">
@@ -254,7 +260,22 @@
             { name: 'ALEXANDER LIPA ANAK RANTIE', cat: 'AKP' }
         ];
 
-        const REASONS = ['Cuti Rehat Khas (CRK)', 'Cuti Rehat (CR)', 'Cuti Tanpa Rekod', 'Cuti Sakit (MC)', 'Urusan Rasmi / Mesyuarat', 'Kursus / Bengkel', 'Cuti Kecemasan', 'Urusan Peribadi', 'Temujanji Doktor'];
+        const REASONS = [
+            'Cuti Rehat Khas (CRK)', 
+            'Cuti Rehat (CR)', 
+            'Cuti Tanpa Rekod', 
+            'Cuti Tanpa Rekod Kelompok',
+            'Cuti Menjaga Anak Kuarantin',
+            'Cuti Tanpa Gaji',
+            'Cuti Sakit (MC)', 
+            'Urusan Rasmi / Mesyuarat', 
+            'Kursus / Bengkel / Taklimat / SLU', 
+            'Cuti Bersalin',
+            'Cuti Kecemasan', 
+            'Urusan Peribadi', 
+            'Temujanji Doktor'
+        ];
+
         const TIME_POINTS = ['7:00 AM', '7:10 AM', '7:40 AM', '8:10 AM', '8:40 AM', '9:10 AM', '9:40 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM', '3:00 PM', '5:00 PM'];
 
         let allRecords = [];
@@ -262,6 +283,7 @@
         let currentFilterDate = new Date().toISOString().split('T')[0];
         let editingId = null;
         let unsubscribe = null;
+        let isInitialLoad = true;
 
         const staffSelect = document.getElementById('staffSelect');
         const reasonSelect = document.getElementById('reasonSelect');
@@ -274,6 +296,7 @@
         const cancelEditBtn = document.getElementById('cancelEditBtn');
         const formTitle = document.getElementById('formTitle');
         const liveStatus = document.getElementById('liveStatus');
+        const enableNotifBtn = document.getElementById('enableNotifBtn');
 
         function init() {
             ['PENTADBIR', 'GURU', 'AKP'].forEach(cat => {
@@ -304,15 +327,75 @@
                 }
             });
 
+            // Update UI for notification button based on permission
+            updateNotifButton();
+
             lucide.createIcons();
+        }
+
+        function updateNotifButton() {
+            if (Notification.permission === 'granted') {
+                enableNotifBtn.innerHTML = `<i data-lucide="bell-ring" class="w-5 h-5"></i> <span class="hidden sm:inline">Aktif</span>`;
+                enableNotifBtn.classList.remove('bg-blue-700');
+                enableNotifBtn.classList.add('bg-emerald-600');
+            } else if (Notification.permission === 'denied') {
+                enableNotifBtn.innerHTML = `<i data-lucide="bell-off" class="w-5 h-5"></i> <span class="hidden sm:inline">Disekat</span>`;
+                enableNotifBtn.classList.add('bg-red-700');
+            }
+            lucide.createIcons();
+        }
+
+        enableNotifBtn.onclick = () => {
+            if (!("Notification" in window)) {
+                alert("Pelayar ini tidak menyokong notifikasi desktop.");
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                updateNotifButton();
+                if (permission === 'granted') {
+                    new Notification("SKPK MIRI", { body: "Notifikasi telah diaktifkan!", icon: 'logo.png' });
+                }
+            });
+        };
+
+        function playNotifSound() {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
         }
 
         function startFirestoreListener() {
             if (unsubscribe) unsubscribe();
             const colRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
             unsubscribe = colRef.onSnapshot(snapshot => {
+                // Track new additions only after first load
+                if (!isInitialLoad) {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === "added") {
+                            const data = change.doc.data();
+                            if (Notification.permission === 'granted') {
+                                new Notification("REKOD BARU: " + data.staffName, {
+                                    body: `Sebab: ${data.reason}`,
+                                    icon: 'logo.png'
+                                });
+                                playNotifSound();
+                            }
+                        }
+                    });
+                }
+                
                 allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 render();
+                isInitialLoad = false;
             }, (err) => console.error("Snapshot Error:", err));
         }
 
@@ -361,7 +444,7 @@
                         <h4 class="font-extrabold text-xl mb-4 text-slate-800 leading-tight uppercase">${rec.staffName}</h4>
                         <div class="space-y-3 text-sm">
                             <div class="flex flex-col gap-1 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <span class="text-blue-700 font-bold text-xs uppercase">TEMPOH</span>
+                                <span class="text-blue-700 font-bold text-xs uppercase tracking-wider">TEMPOH</span>
                                 <span class="font-semibold text-slate-700 uppercase">${formatDateMalay(rec.startDate)} ${rec.endDate !== rec.startDate ? ' -> ' + formatDateMalay(rec.endDate) : ''}</span>
                             </div>
                             <div class="flex items-center gap-2 font-bold text-slate-600 px-1">
@@ -398,11 +481,8 @@
             document.getElementById('startDate').value = rec.startDate;
             document.getElementById('endDate').value = rec.endDate;
             document.getElementById('locationInput').value = rec.location || '';
-            
-            // Tunjukkan ruangan lokasi jika perlu
-            const showLoc = rec.reason === 'Urusan Rasmi / Mesyuarat' || rec.reason === 'Kursus / Bengkel';
+            const showLoc = rec.reason === 'Urusan Rasmi / Mesyuarat' || rec.reason === 'Kursus / Bengkel / Taklimat / SLU';
             document.getElementById('locationField').classList.toggle('hidden', !showLoc);
-
             if (rec.time === 'Sepanjang Hari') {
                 startTimeSelect.value = ''; endTimeSelect.value = '';
             } else if (rec.time.includes(' - ')) {
@@ -411,7 +491,6 @@
             } else {
                 startTimeSelect.value = rec.time.replace('Bermula ', ''); endTimeSelect.value = '';
             }
-
             formSection.classList.remove('hidden');
             formTitle.innerHTML = `<i data-lucide="edit-3"></i> Kemaskini Rekod`;
             submitBtn.innerText = "Kemaskini Rekod";
@@ -452,7 +531,7 @@
             submitBtn.disabled = true;
             submitBtn.innerText = "Menghantar...";
             try {
-                const isLocationRequired = reasonSelect.value === 'Urusan Rasmi / Mesyuarat' || reasonSelect.value === 'Kursus / Bengkel';
+                const isLocationRequired = reasonSelect.value === 'Urusan Rasmi / Mesyuarat' || reasonSelect.value === 'Kursus / Bengkel / Taklimat / SLU';
                 const data = {
                     staffName: staffSelect.value,
                     category: staff.cat,
@@ -481,11 +560,9 @@
         document.getElementById('confirmAuthBtn').onclick = async () => {
             const member = JW_TEAM.find(m => m.name === document.getElementById('jwNameSelect').value);
             const resetDate = document.getElementById('jwResetDate').value;
-            
             if (member && member.ic === document.getElementById('jwIcInput').value.trim()) {
                 let toDelete = [];
                 let msg = "";
-                
                 if (resetDate) {
                     toDelete = allRecords.filter(r => resetDate >= r.startDate && resetDate <= r.endDate);
                     msg = `Adakah anda pasti mahu memadam SEMUA (${toDelete.length}) rekod pada tarikh ${resetDate}?`;
@@ -493,32 +570,23 @@
                     toDelete = allRecords;
                     msg = "Tindakan ini akan MEMADAM SEMUA rekod dalam sistem secara kekal. Anda pasti?";
                 }
-
-                if (toDelete.length === 0) {
-                    alert("Tiada rekod ditemui untuk tindakan ini.");
-                    return;
-                }
-
+                if (toDelete.length === 0) { alert("Tiada rekod ditemui."); return; }
                 if(confirm(msg)) {
                     document.getElementById('authModal').classList.add('hidden');
                     const batch = db.batch();
                     const colPath = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
                     toDelete.forEach(r => batch.delete(colPath.doc(r.id)));
                     await batch.commit();
-                    alert(resetDate ? `Rekod pada ${resetDate} telah dipadam.` : "Sistem telah di-reset sepenuhnya.");
+                    alert(resetDate ? `Rekod pada ${resetDate} dipadam.` : "Sistem di-reset.");
                 }
-            } else { 
-                document.getElementById('authError').classList.remove('hidden'); 
-            }
+            } else { document.getElementById('authError').classList.remove('hidden'); }
         };
 
         document.getElementById('toggleFormBtn').onclick = () => { formSection.classList.toggle('hidden'); if(!formSection.classList.contains('hidden')) resetForm(); };
-        
         reasonSelect.onchange = () => {
-            const showLoc = reasonSelect.value === 'Urusan Rasmi / Mesyuarat' || reasonSelect.value === 'Kursus / Bengkel';
+            const showLoc = reasonSelect.value === 'Urusan Rasmi / Mesyuarat' || reasonSelect.value === 'Kursus / Bengkel / Taklimat / SLU';
             document.getElementById('locationField').classList.toggle('hidden', !showLoc);
         };
-
         document.getElementById('cancelAuthBtn').onclick = () => document.getElementById('authModal').classList.add('hidden');
 
         document.querySelectorAll('.filter-btn').forEach(btn => {
