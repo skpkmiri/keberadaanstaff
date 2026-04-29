@@ -260,6 +260,7 @@
             { name: 'ALEXANDER LIPA ANAK RANTIE', cat: 'AKP' }
         ];
 
+        // SENARAI SEBAB - Ditambah KKWP
         const REASONS = [
             'Cuti Rehat Khas (CRK)', 
             'Cuti Rehat (CR)', 
@@ -271,6 +272,7 @@
             'Urusan Rasmi / Mesyuarat', 
             'Kursus / Bengkel / Taklimat / SLU', 
             'Cuti Bersalin',
+            'KKWP',
             'Cuti Kecemasan', 
             'Urusan Peribadi', 
             'Temujanji Doktor'
@@ -327,9 +329,7 @@
                 }
             });
 
-            // Update UI for notification button based on permission
             updateNotifButton();
-
             lucide.createIcons();
         }
 
@@ -377,7 +377,6 @@
             if (unsubscribe) unsubscribe();
             const colRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
             unsubscribe = colRef.onSnapshot(snapshot => {
-                // Track new additions only after first load
                 if (!isInitialLoad) {
                     snapshot.docChanges().forEach(change => {
                         if (change.type === "added") {
@@ -392,7 +391,6 @@
                         }
                     });
                 }
-                
                 allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 render();
                 isInitialLoad = false;
@@ -577,7 +575,7 @@
                     const colPath = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
                     toDelete.forEach(r => batch.delete(colPath.doc(r.id)));
                     await batch.commit();
-                    alert(resetDate ? `Rekod pada ${resetDate} dipadam.` : "Sistem di-reset.");
+                    alert(resetDate ? `Rekod pada ${resetDate} dipadam.` : "Sistem telah di-reset sepenuhnya.");
                 }
             } else { document.getElementById('authError').classList.remove('hidden'); }
         };
