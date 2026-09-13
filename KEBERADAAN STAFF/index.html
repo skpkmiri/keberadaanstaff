@@ -89,9 +89,12 @@
 
                     <div class="md:col-span-2 space-y-2">
                         <label class="block text-sm font-bold text-slate-700">Masa (Mula hingga Akhir - Tidak Wajib)</label>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div id="timeDropdowns" class="grid grid-cols-2 gap-4">
                             <select id="startTime" class="p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"></select>
                             <select id="endTime" class="p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"></select>
+                        </div>
+                        <div id="timeManual" class="hidden">
+                            <input type="text" id="manualTimeInput" placeholder="Sila taip masa (Contoh: 8:00 pagi - 5:00 petang)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <p class="text-[10px] text-slate-400 font-medium pl-1 italic">*Biarkan kosong jika tidak hadir sepanjang hari.</p>
                     </div>
@@ -315,6 +318,7 @@
         const reasonSelect = document.getElementById('reasonSelect');
         const startTimeSelect = document.getElementById('startTime');
         const endTimeSelect = document.getElementById('endTime');
+        const manualTimeInput = document.getElementById('manualTimeInput');
         const filterDateInput = document.getElementById('filterDate');
         const recordsGrid = document.getElementById('recordsGrid');
         const formSection = document.getElementById('formSection');
@@ -534,29 +538,38 @@
             document.getElementById('locationInput').value = rec.location || '';
             const showLoc = rec.reason === 'Urusan Rasmi / Mesyuarat' || rec.reason === 'Kursus / Bengkel / Taklimat / SLU';
             document.getElementById('locationField').classList.toggle('hidden', !showLoc);
-            if (rec.time === 'Sepanjang Hari') {
+            
+            const isAKP = rec.category === 'AKP';
+            if (isAKP) {
+                document.getElementById('timeDropdowns').classList.add('hidden');
+                document.getElementById('timeManual').classList.remove('hidden');
+                manualTimeInput.value = rec.time === 'Sepanjang Hari' ? '' : rec.time;
                 startTimeSelect.value = ''; endTimeSelect.value = '';
-            } else if (rec.time.includes(' - ')) {
-                const parts = rec.time.split(' - ');
-                startTimeSelect.value = parts[0]; endTimeSelect.value = parts[1];
             } else {
-                startTimeSelect.value = rec.time.replace('Bermula ', ''); endTimeSelect.value = '';
+                document.getElementById('timeDropdowns').classList.remove('hidden');
+                document.getElementById('timeManual').classList.add('hidden');
+                manualTimeInput.value = '';
+                
+                if (rec.time === 'Sepanjang Hari') {
+                    startTimeSelect.value = ''; endTimeSelect.value = '';
+                } else if (rec.time.includes(' - ')) {
+                    const parts = rec.time.split(' - ');
+                    startTimeSelect.value = parts[0]; endTimeSelect.value = parts[1];
+                } else {
+                    startTimeSelect.value = rec.time.replace('Bermula ', ''); endTimeSelect.value = '';
+                }
             }
+
             formSection.classList.remove('hidden');
             formTitle.innerHTML = `<i data-lucide="edit-3"></i> Kemaskini Rekod`;
             submitBtn.innerText = "Kemaskini Rekod";
-            cancelEditBtn.classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            lucide.createIcons();
-        };
-
-        window.deleteRecord = (id) => {
-            showCustomConfirm("Sahkan Pemadaman", "Padam rekod ini?", async () => {
+        window.deleteRecord = async (id) => {
+            if (confirm("Padam rekod ini?")) {
                 try {
                     await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan').doc(id).delete();
                     if(editingId === id) resetForm();
                 } catch(e) { console.error(e); }
-            });
+            }
         };
 
         function resetForm() {
@@ -566,6 +579,8 @@
             submitBtn.innerText = "Simpan Rekod";
             cancelEditBtn.classList.add('hidden');
             document.getElementById('locationField').classList.add('hidden');
+            document.getElementById('timeDropdowns').classList.remove('hidden');
+            document.getElementById('timeManual').classList.add('hidden');
             document.getElementById('startDate').value = currentFilterDate || new Date().toISOString().split('T')[0];
             document.getElementById('endDate').value = currentFilterDate || new Date().toISOString().split('T')[0];
         }
@@ -574,11 +589,18 @@
 
         document.getElementById('presenceForm').onsubmit = async (e) => {
             e.preventDefault();
-            if (!auth.currentUser) { showCustomAlert("Amaran", "Sila tunggu sambungan..."); return; }
+            if (!auth.currentUser) { alert("Sila tunggu sambungan..."); return; }
             const staff = STAFF_LIST.find(s => s.name === staffSelect.value);
+            
             let timeStr = 'Sepanjang Hari';
-            if(startTimeSelect.value && endTimeSelect.value) timeStr = `${startTimeSelect.value} - ${endTimeSelect.value}`;
-            else if(startTimeSelect.value) timeStr = `Bermula ${startTimeSelect.value}`;
+            if (staff && staff.cat === 'AKP') {
+                const manualVal = manualTimeInput.value.trim();
+                if (manualVal) timeStr = manualVal;
+            } else {
+                if(startTimeSelect.value && endTimeSelect.value) timeStr = `${startTimeSelect.value} - ${endTimeSelect.value}`;
+                else if(startTimeSelect.value) timeStr = `Bermula ${startTimeSelect.value}`;
+            }
+            
             submitBtn.disabled = true;
             submitBtn.innerText = "Menghantar...";
             try {
@@ -635,6 +657,18 @@
         };
 
         document.getElementById('toggleFormBtn').onclick = () => { formSection.classList.toggle('hidden'); if(!formSection.classList.contains('hidden')) resetForm(); };
+        
+        staffSelect.onchange = () => {
+            const staff = STAFF_LIST.find(s => s.name === staffSelect.value);
+            if (staff && staff.cat === 'AKP') {
+                document.getElementById('timeDropdowns').classList.add('hidden');
+                document.getElementById('timeManual').classList.remove('hidden');
+            } else {
+                document.getElementById('timeDropdowns').classList.remove('hidden');
+                document.getElementById('timeManual').classList.add('hidden');
+            }
+        };
+
         reasonSelect.onchange = () => {
             const showLoc = reasonSelect.value === 'Urusan Rasmi / Mesyuarat' || reasonSelect.value === 'Kursus / Bengkel / Taklimat / SLU';
             document.getElementById('locationField').classList.toggle('hidden', !showLoc);
