@@ -21,7 +21,7 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        #authModal, #customConfirmModal, #customAlertModal { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        #authModal { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans">
@@ -38,7 +38,6 @@
                     </div>
                 </div>
                 <div class="flex flex-wrap justify-center gap-3">
-                    <!-- Butang Aktifkan Notifikasi -->
                     <button id="enableNotifBtn" class="flex items-center gap-2 bg-blue-700 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-600 transition-all shadow-lg active:scale-95 border border-blue-500/30">
                         <i data-lucide="bell" class="w-5 h-5"></i> <span class="hidden sm:inline">Notifikasi</span>
                     </button>
@@ -87,15 +86,22 @@
                         <input type="date" id="endDate" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" required>
                     </div>
 
+                    <!-- Ruangan Masa Dinamik -->
                     <div class="md:col-span-2 space-y-2">
-                        <label class="block text-sm font-bold text-slate-700">Masa (Mula hingga Akhir - Tidak Wajib)</label>
+                        <label class="block text-sm font-bold text-slate-700">Masa Keberadaan (Tidak Wajib)</label>
+                        
+                        <!-- Pilihan Untuk Guru/Pentadbir -->
                         <div id="timeDropdowns" class="grid grid-cols-2 gap-4">
                             <select id="startTime" class="p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"></select>
                             <select id="endTime" class="p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"></select>
                         </div>
-                        <div id="timeManual" class="hidden">
-                            <input type="text" id="manualTimeInput" placeholder="Sila taip masa (Contoh: 8:00 pagi - 5:00 petang)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+
+                        <!-- Pilihan Teks Untuk AKP -->
+                        <div id="timeManual" class="hidden relative">
+                            <i data-lucide="clock" class="absolute left-3 top-3 text-slate-400 w-5 h-5"></i>
+                            <input type="text" id="manualTimeInput" placeholder="Contoh: 8:00 pagi - 5:00 petang" class="w-full p-3 pl-10 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
+
                         <p class="text-[10px] text-slate-400 font-medium pl-1 italic">*Biarkan kosong jika tidak hadir sepanjang hari.</p>
                     </div>
 
@@ -139,7 +145,7 @@
             <div class="space-y-4">
                 <div class="flex justify-between items-center px-2">
                     <h3 class="font-bold text-slate-800 text-lg">Paparan Rekod Keberadaan <span id="recordCount" class="text-blue-600">(0)</span></h3>
-                    <span id="liveStatus" class="text-xs font-semibold bg-slate-100 text-slate-400 px-3 py-1 rounded-full">Menyambung...</span>
+                    <span id="liveStatus" class="text-xs font-semibold bg-amber-100 text-amber-700 px-3 py-1 rounded-full">Menyambung...</span>
                 </div>
 
                 <div id="recordsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -155,7 +161,7 @@
         </div>
     </div>
 
-    <!-- Modal Pengesahan untuk Reset Global / Ikut Tarikh -->
+    <!-- Modal Pengesahan Team JW -->
     <div id="authModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in border border-blue-100">
             <div class="bg-red-600 p-6 text-white">
@@ -191,29 +197,6 @@
         </div>
     </div>
 
-    <!-- Custom Modal Confirm -->
-    <div id="customConfirmModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 animate-fade-in border border-slate-100">
-            <h3 id="confirmTitleText" class="text-lg font-bold text-slate-900 mb-2">Sahkan Tindakan</h3>
-            <p id="confirmBodyText" class="text-sm text-slate-500 mb-6">Adakah anda pasti?</p>
-            <div class="flex justify-end gap-3">
-                <button id="confirmNoBtn" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl text-sm hover:bg-slate-200 transition-colors">Batal</button>
-                <button id="confirmYesBtn" class="px-4 py-2 bg-red-600 text-white font-bold rounded-xl text-sm hover:bg-red-700 transition-colors shadow-md">Sahkan</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Custom Modal Alert -->
-    <div id="customAlertModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 animate-fade-in border border-slate-100">
-            <h3 id="alertTitleText" class="text-lg font-bold text-slate-900 mb-2">Maklumat</h3>
-            <p id="alertBodyText" class="text-sm text-slate-500 mb-6">Mesej berjaya.</p>
-            <div class="flex justify-end">
-                <button id="alertOkBtn" class="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl text-sm hover:bg-blue-700 transition-colors shadow-md">OK</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         // --- KONFIGURASI FIREBASE ---
         const firebaseConfig = {
@@ -241,14 +224,14 @@
             { name: 'NURUL HUDA BTE MOHD IHWAN', ic: '900224137086' }
         ];
 
-        // --- SENARAI STAF 2026 (Dikemaskini: Mengeluarkan Guru yang Berpindah) ---
+        // --- SENARAI STAF 2026 (Dikemaskini) ---
         const STAFF_LIST = [
             { name: 'AZIZ BIN TAHIR', cat: 'PENTADBIR' },
             { name: 'MOHAMAD ABIDIN BIN SIPEK', cat: 'PENTADBIR' },
             { name: 'LING MEE CHOO', cat: 'PENTADBIR' },
             { name: 'SALIHIN BIN AHMAD', cat: 'PENTADBIR' },
+            
             { name: 'AIDA MASTURINA BINTI HAMKA', cat: 'GURU' },
-            // AIFA NUR BESTARI BINTI RADUAN dikeluarkan kerana berpindah
             { name: 'BRYAN ANAK CONSTANT', cat: 'GURU' },
             { name: 'CHRISTIAN SIMON', cat: 'GURU' },
             { name: 'DLIYANA ANAK JOHN', cat: 'GURU' },
@@ -265,7 +248,6 @@
             { name: 'MUHAMMAD ZULHUSAINI BIN ABDUL WAHAB', cat: 'GURU' },
             { name: 'NUR HIDAYU BINTI YUSOP', cat: 'GURU' },
             { name: 'NURUL HUDA BTE MOHD IHWAN', cat: 'GURU' },
-            // NUR AZLIN BINTI NORIZAN dikeluarkan kerana berpindah
             { name: 'NUR FADZLIAH AMAL BINTI OSMAN', cat: 'GURU' },
             { name: 'SABARIAH BINTI SOLHI', cat: 'GURU' },
             { name: 'SYAEEZA LIANA BINTI RAMLI', cat: 'GURU' },
@@ -275,6 +257,7 @@
             { name: 'VANITHA A/P SUBRAMANIAM', cat: 'GURU' },
             { name: 'WONG PICK KING', cat: 'GURU' },
             { name: 'ZEPRINA ANAK BENIK', cat: 'GURU' },
+            
             { name: 'NORMIRI BINTI ABDULLAH', cat: 'AKP' },
             { name: 'HAZUANI BINTI HIPNI', cat: 'AKP' },
             { name: 'HELLEN RANJA ANAK BELI', cat: 'AKP' },
@@ -284,41 +267,32 @@
             { name: 'EVELYN SENA ANAK USSIK', cat: 'AKP' },
             { name: 'MARIATI BINTI JULAIHI', cat: 'AKP' },
             { name: 'ALEXANDER LIPA ANAK RANTIE', cat: 'AKP' },
-            { name: 'MARRINY ANAK JENANG', cat: 'AKP' }
+            { name: 'MARRINY ANAK JENANG', cat: 'AKP' } // Staff Baru
         ];
 
-        // SENARAI SEBAB
         const REASONS = [
-            'Cuti Rehat Khas (CRK)', 
-            'Cuti Rehat (CR)', 
-            'Cuti Tanpa Rekod', 
-            'Cuti Tanpa Rekod Kelompok',
-            'Cuti Menjaga Anak Kuarantin',
-            'Cuti Tanpa Gaji',
-            'Cuti Sakit (MC)', 
-            'Urusan Rasmi / Mesyuarat', 
-            'Kursus / Bengkel / Taklimat / SLU', 
-            'Cuti Bersalin',
-            'KKWP',
-            'Cuti Kecemasan', 
-            'Urusan Peribadi', 
-            'Temujanji Doktor'
+            'Cuti Rehat Khas (CRK)', 'Cuti Rehat (CR)', 'Cuti Tanpa Rekod', 
+            'Cuti Tanpa Rekod Kelompok', 'Cuti Menjaga Anak Kuarantin', 'Cuti Tanpa Gaji',
+            'Cuti Sakit (MC)', 'Urusan Rasmi / Mesyuarat', 'Kursus / Bengkel / Taklimat / SLU', 
+            'Cuti Bersalin', 'KKWP', 'Cuti Kecemasan', 'Urusan Peribadi', 'Temujanji Doktor'
         ];
 
         const TIME_POINTS = ['7:00 AM', '7:10 AM', '7:40 AM', '8:10 AM', '8:40 AM', '9:10 AM', '9:40 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM', '3:00 PM', '5:00 PM'];
 
         let allRecords = [];
         let currentFilterCat = 'SEMUA';
-        let currentFilterDate = new Date().toISOString().split('T')[0];
         let editingId = null;
         let unsubscribe = null;
         let isInitialLoad = true;
+
+        // Dapatkan tarikh semasa mengikut zon waktu tempatan
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+        let currentFilterDate = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 10);
 
         const staffSelect = document.getElementById('staffSelect');
         const reasonSelect = document.getElementById('reasonSelect');
         const startTimeSelect = document.getElementById('startTime');
         const endTimeSelect = document.getElementById('endTime');
-        const manualTimeInput = document.getElementById('manualTimeInput');
         const filterDateInput = document.getElementById('filterDate');
         const recordsGrid = document.getElementById('recordsGrid');
         const formSection = document.getElementById('formSection');
@@ -337,6 +311,7 @@
             });
             JW_TEAM.forEach(m => document.getElementById('jwNameSelect').appendChild(new Option(m.name, m.name)));
             REASONS.forEach(r => reasonSelect.add(new Option(r, r)));
+            
             startTimeSelect.add(new Option('Dari Jam...', ''));
             endTimeSelect.add(new Option('Hingga Jam...', ''));
             TIME_POINTS.forEach(t => {
@@ -348,14 +323,19 @@
             document.getElementById('endDate').value = currentFilterDate;
             filterDateInput.value = currentFilterDate;
 
-            // Auth, then Listener
+            // Authentication & Start Listener
             auth.onAuthStateChanged((user) => {
                 if (user) {
                     startFirestoreListener();
                     liveStatus.innerText = "Sedia (Awan)";
                     liveStatus.className = "text-xs font-semibold bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full animate-pulse";
                 } else {
-                    auth.signInAnonymously().catch(e => console.error("Auth Fail:", e));
+                    auth.signInAnonymously().catch(e => {
+                        console.error("Auth Fail:", e);
+                        liveStatus.innerText = "Gagal Menyambung";
+                        liveStatus.className = "text-xs font-semibold bg-red-100 text-red-700 px-3 py-1 rounded-full";
+                        alert("Gagal menyambung ke pangkalan data. Sila pastikan 'Anonymous' Login diaktifkan di Firebase Console > Authentication.");
+                    });
                 }
             });
 
@@ -363,72 +343,24 @@
             lucide.createIcons();
         }
 
-        // --- CUSTOM MODALS FOR EMBEDDED PREVIEW ---
-        function showCustomConfirm(title, message, onYes) {
-            document.getElementById('confirmTitleText').innerText = title;
-            document.getElementById('confirmBodyText').innerText = message;
-            const modal = document.getElementById('customConfirmModal');
-            modal.classList.remove('hidden');
-            
-            document.getElementById('confirmYesBtn').onclick = () => {
-                modal.classList.add('hidden');
-                onYes();
-            };
-            document.getElementById('confirmNoBtn').onclick = () => {
-                modal.classList.add('hidden');
-            };
-        }
-
-        function showCustomAlert(title, message) {
-            document.getElementById('alertTitleText').innerText = title;
-            document.getElementById('alertBodyText').innerText = message;
-            const modal = document.getElementById('customAlertModal');
-            modal.classList.remove('hidden');
-            
-            document.getElementById('alertOkBtn').onclick = () => {
-                modal.classList.add('hidden');
-            };
-        }
-
         function updateNotifButton() {
             if (Notification.permission === 'granted') {
                 enableNotifBtn.innerHTML = `<i data-lucide="bell-ring" class="w-5 h-5"></i> <span class="hidden sm:inline">Aktif</span>`;
-                enableNotifBtn.classList.remove('bg-blue-700');
-                enableNotifBtn.classList.add('bg-emerald-600');
+                enableNotifBtn.classList.replace('bg-blue-700', 'bg-emerald-600');
             } else if (Notification.permission === 'denied') {
                 enableNotifBtn.innerHTML = `<i data-lucide="bell-off" class="w-5 h-5"></i> <span class="hidden sm:inline">Disekat</span>`;
-                enableNotifBtn.classList.add('bg-red-700');
+                enableNotifBtn.classList.replace('bg-blue-700', 'bg-red-700');
             }
             lucide.createIcons();
         }
 
         enableNotifBtn.onclick = () => {
-            if (!("Notification" in window)) {
-                showCustomAlert("Ralat", "Pelayar ini tidak menyokong notifikasi desktop.");
-                return;
-            }
+            if (!("Notification" in window)) return alert("Pelayar ini tidak menyokong notifikasi.");
             Notification.requestPermission().then(permission => {
                 updateNotifButton();
-                if (permission === 'granted') {
-                    new Notification("SKPK MIRI", { body: "Notifikasi telah diaktifkan!", icon: 'logo.png' });
-                }
+                if (permission === 'granted') new Notification("SKPK MIRI", { body: "Notifikasi aktif!", icon: 'logo.png' });
             });
         };
-
-        function playNotifSound() {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
-            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.1);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.5);
-        }
 
         function startFirestoreListener() {
             if (unsubscribe) unsubscribe();
@@ -436,28 +368,18 @@
             unsubscribe = colRef.onSnapshot(snapshot => {
                 if (!isInitialLoad) {
                     snapshot.docChanges().forEach(change => {
-                        if (change.type === "added") {
-                            const data = change.doc.data();
-                            if (Notification.permission === 'granted') {
-                                new Notification("REKOD BARU: " + data.staffName, {
-                                    body: `Sebab: ${data.reason}`,
-                                    icon: 'logo.png'
-                                });
-                                playNotifSound();
-                            }
+                        if (change.type === "added" && Notification.permission === 'granted') {
+                            new Notification("REKOD BARU: " + change.doc.data().staffName, { body: change.doc.data().reason, icon: 'logo.png' });
                         }
                     });
                 }
                 allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 render();
                 isInitialLoad = false;
-            }, (err) => console.error("Snapshot Error:", err));
-        }
-
-        function formatDateTime(timestamp) {
-            if (!timestamp) return 'N/A';
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            return date.toLocaleString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }, (err) => {
+                console.error("Firestore Error:", err);
+                alert("Akses ditolak: Sila pastikan Firestore Rules membenarkan bacaan (allow read, write: if true;).");
+            });
         }
 
         function render() {
@@ -476,7 +398,7 @@
                             <i data-lucide="search" class="text-slate-300 w-8 h-8"></i>
                         </div>
                         <p class="text-slate-400 font-medium">Tiada rekod keberadaan ditemui.</p>
-                        <p class="text-slate-300 text-xs mt-1">Pastikan tarikh tapis adalah betul.</p>
+                        <p class="text-slate-300 text-xs mt-1">Sila pastikan tarikh carian adalah betul.</p>
                     </div>`;
             } else {
                 recordsGrid.innerHTML = filtered.map(rec => `
@@ -488,12 +410,8 @@
                             }">${rec.category}</span>
                             
                             <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onclick="editRecord('${rec.id}')" class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-colors">
-                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                </button>
-                                <button onclick="deleteRecord('${rec.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
+                                <button onclick="editRecord('${rec.id}')" class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-colors"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                                <button onclick="deleteRecord('${rec.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
                         </div>
                         <h4 class="font-extrabold text-xl mb-4 text-slate-800 leading-tight uppercase">${rec.staffName}</h4>
@@ -510,9 +428,6 @@
                                 <span class="text-slate-800 uppercase">${rec.reason}</span>
                                 ${rec.location ? `<div class="mt-1 text-blue-700 text-xs font-black uppercase"><i data-lucide="map-pin" class="inline w-3 h-3"></i> LOKASI: ${rec.location}</div>` : ''}
                             </div>
-                            <div class="pt-2 border-t text-[9px] text-slate-400 italic">
-                                Direkodkan pada: ${formatDateTime(rec.createdAt)}
-                            </div>
                         </div>
                     </div>
                 `).join('');
@@ -527,29 +442,37 @@
             return `${days[d.getDay()]}, ${d.toLocaleDateString('ms-MY')}`;
         }
 
+        // --- DYNAMIC TIME INPUT FOR AKP ---
+        staffSelect.addEventListener('change', () => {
+            const staff = STAFF_LIST.find(s => s.name === staffSelect.value);
+            if (staff && staff.cat === 'AKP') {
+                document.getElementById('timeDropdowns').classList.add('hidden');
+                document.getElementById('timeManual').classList.remove('hidden');
+            } else {
+                document.getElementById('timeDropdowns').classList.remove('hidden');
+                document.getElementById('timeManual').classList.add('hidden');
+            }
+        });
+
         window.editRecord = (id) => {
             const rec = allRecords.find(r => r.id === id);
             if (!rec) return;
             editingId = id;
             staffSelect.value = rec.staffName;
+            
+            // Trigger UI change for AKP vs Guru
+            staffSelect.dispatchEvent(new Event('change'));
+
             reasonSelect.value = rec.reason;
             document.getElementById('startDate').value = rec.startDate;
             document.getElementById('endDate').value = rec.endDate;
             document.getElementById('locationInput').value = rec.location || '';
             const showLoc = rec.reason === 'Urusan Rasmi / Mesyuarat' || rec.reason === 'Kursus / Bengkel / Taklimat / SLU';
             document.getElementById('locationField').classList.toggle('hidden', !showLoc);
-            
-            const isAKP = rec.category === 'AKP';
-            if (isAKP) {
-                document.getElementById('timeDropdowns').classList.add('hidden');
-                document.getElementById('timeManual').classList.remove('hidden');
-                manualTimeInput.value = rec.time === 'Sepanjang Hari' ? '' : rec.time;
-                startTimeSelect.value = ''; endTimeSelect.value = '';
+
+            if (rec.category === 'AKP') {
+                document.getElementById('manualTimeInput').value = rec.time === 'Sepanjang Hari' ? '' : rec.time;
             } else {
-                document.getElementById('timeDropdowns').classList.remove('hidden');
-                document.getElementById('timeManual').classList.add('hidden');
-                manualTimeInput.value = '';
-                
                 if (rec.time === 'Sepanjang Hari') {
                     startTimeSelect.value = ''; endTimeSelect.value = '';
                 } else if (rec.time.includes(' - ')) {
@@ -563,6 +486,11 @@
             formSection.classList.remove('hidden');
             formTitle.innerHTML = `<i data-lucide="edit-3"></i> Kemaskini Rekod`;
             submitBtn.innerText = "Kemaskini Rekod";
+            cancelEditBtn.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            lucide.createIcons();
+        };
+
         window.deleteRecord = async (id) => {
             if (confirm("Padam rekod ini?")) {
                 try {
@@ -575,34 +503,35 @@
         function resetForm() {
             editingId = null;
             document.getElementById('presenceForm').reset();
+            staffSelect.dispatchEvent(new Event('change')); // Reset UI based on first empty selection
             formTitle.innerHTML = `<i data-lucide="file-text"></i> Borang Maklumat`;
             submitBtn.innerText = "Simpan Rekod";
             cancelEditBtn.classList.add('hidden');
             document.getElementById('locationField').classList.add('hidden');
-            document.getElementById('timeDropdowns').classList.remove('hidden');
-            document.getElementById('timeManual').classList.add('hidden');
-            document.getElementById('startDate').value = currentFilterDate || new Date().toISOString().split('T')[0];
-            document.getElementById('endDate').value = currentFilterDate || new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = currentFilterDate;
+            document.getElementById('endDate').value = currentFilterDate;
         }
 
         cancelEditBtn.onclick = resetForm;
 
         document.getElementById('presenceForm').onsubmit = async (e) => {
             e.preventDefault();
-            if (!auth.currentUser) { alert("Sila tunggu sambungan..."); return; }
-            const staff = STAFF_LIST.find(s => s.name === staffSelect.value);
+            if (!auth.currentUser) { alert("Sila tunggu Firebase Authentication..."); return; }
             
+            const staff = STAFF_LIST.find(s => s.name === staffSelect.value);
             let timeStr = 'Sepanjang Hari';
-            if (staff && staff.cat === 'AKP') {
-                const manualVal = manualTimeInput.value.trim();
-                if (manualVal) timeStr = manualVal;
+            
+            if (staff.cat === 'AKP') {
+                const manualInput = document.getElementById('manualTimeInput').value.trim();
+                if (manualInput) timeStr = manualInput;
             } else {
                 if(startTimeSelect.value && endTimeSelect.value) timeStr = `${startTimeSelect.value} - ${endTimeSelect.value}`;
                 else if(startTimeSelect.value) timeStr = `Bermula ${startTimeSelect.value}`;
             }
-            
+
             submitBtn.disabled = true;
             submitBtn.innerText = "Menghantar...";
+
             try {
                 const isLocationRequired = reasonSelect.value === 'Urusan Rasmi / Mesyuarat' || reasonSelect.value === 'Kursus / Bengkel / Taklimat / SLU';
                 const data = {
@@ -615,17 +544,26 @@
                     location: isLocationRequired ? document.getElementById('locationInput').value : '',
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
+                
                 const colRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
                 if (editingId) await colRef.doc(editingId).update(data);
                 else { data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await colRef.add(data); }
-                resetForm(); formSection.classList.add('hidden');
-            } catch (err) { console.error(err); showCustomAlert("Ralat", "Gagal menyimpan."); }
-            finally { submitBtn.disabled = false; submitBtn.innerText = editingId ? "Kemaskini Rekod" : "Simpan Rekod"; }
+                
+                resetForm(); 
+                formSection.classList.add('hidden');
+            } catch (err) { 
+                console.error(err); 
+                alert("Gagal menyimpan data."); 
+            } finally { 
+                submitBtn.disabled = false; 
+                submitBtn.innerText = editingId ? "Kemaskini Rekod" : "Simpan Rekod"; 
+            }
         };
 
+        // --- RESET GLOBAL (JW TEAM) ---
         document.getElementById('globalResetBtn').onclick = () => {
             document.getElementById('jwIcInput').value = "";
-            document.getElementById('jwResetDate').value = currentFilterDate || "";
+            document.getElementById('jwResetDate').value = currentFilterDate;
             document.getElementById('authError').classList.add('hidden');
             document.getElementById('authModal').classList.remove('hidden');
         };
@@ -643,32 +581,19 @@
                     toDelete = allRecords;
                     msg = "Tindakan ini akan MEMADAM SEMUA rekod dalam sistem secara kekal. Anda pasti?";
                 }
-                if (toDelete.length === 0) { showCustomAlert("Maklumat", "Tiada rekod ditemui."); return; }
-                
-                showCustomConfirm("Sahkan Reset", msg, async () => {
+                if (toDelete.length === 0) { alert("Tiada rekod ditemui."); return; }
+                if(confirm(msg)) {
                     document.getElementById('authModal').classList.add('hidden');
                     const batch = db.batch();
                     const colPath = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
                     toDelete.forEach(r => batch.delete(colPath.doc(r.id)));
                     await batch.commit();
-                    showCustomAlert("Berjaya", resetDate ? `Rekod pada ${resetDate} dipadam.` : "Sistem telah di-reset sepenuhnya.");
-                });
+                    alert(resetDate ? `Rekod dipadam.` : "Sistem di-reset.");
+                }
             } else { document.getElementById('authError').classList.remove('hidden'); }
         };
 
         document.getElementById('toggleFormBtn').onclick = () => { formSection.classList.toggle('hidden'); if(!formSection.classList.contains('hidden')) resetForm(); };
-        
-        staffSelect.onchange = () => {
-            const staff = STAFF_LIST.find(s => s.name === staffSelect.value);
-            if (staff && staff.cat === 'AKP') {
-                document.getElementById('timeDropdowns').classList.add('hidden');
-                document.getElementById('timeManual').classList.remove('hidden');
-            } else {
-                document.getElementById('timeDropdowns').classList.remove('hidden');
-                document.getElementById('timeManual').classList.add('hidden');
-            }
-        };
-
         reasonSelect.onchange = () => {
             const showLoc = reasonSelect.value === 'Urusan Rasmi / Mesyuarat' || reasonSelect.value === 'Kursus / Bengkel / Taklimat / SLU';
             document.getElementById('locationField').classList.toggle('hidden', !showLoc);
@@ -682,8 +607,14 @@
                 currentFilterCat = btn.getAttribute('data-cat'); render();
             };
         });
+        
         filterDateInput.onchange = () => { currentFilterDate = filterDateInput.value; render(); };
-        document.getElementById('resetDate').onclick = () => { currentFilterDate = ''; filterDateInput.value = ''; render(); };
+        document.getElementById('resetDate').onclick = () => { 
+            const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            currentFilterDate = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 10);
+            filterDateInput.value = currentFilterDate; 
+            render(); 
+        };
 
         init();
     </script>
