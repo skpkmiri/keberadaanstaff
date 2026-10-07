@@ -21,14 +21,13 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        #authModal { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+        #adminModal { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans">
 
     <div id="app" class="min-h-screen p-4 md:p-8">
         <div class="max-w-5xl mx-auto">
-            <!-- Header dengan Logo -->
             <div class="bg-blue-800 rounded-2xl p-6 mb-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
                 <div class="flex items-center gap-4">
                     <img src="logo.png" alt="Logo SKPK Miri" class="w-16 h-16 md:w-20 md:h-20 object-contain bg-white p-1 rounded-full shadow-sm" onerror="this.style.display='none'">
@@ -47,7 +46,6 @@
                 </div>
             </div>
 
-            <!-- Bahagian Borang -->
             <div id="formSection" class="hidden bg-white rounded-2xl p-6 mb-8 shadow-md border border-slate-200 animate-fade-in">
                 <h2 id="formTitle" class="text-xl font-bold mb-6 flex items-center gap-2 border-b pb-3 text-blue-800">
                     <i data-lucide="file-text"></i> Borang Maklumat
@@ -116,7 +114,6 @@
                 </form>
             </div>
 
-            <!-- Tapisan & Reset Global -->
             <div class="bg-white p-4 rounded-2xl mb-8 shadow-sm border border-slate-200 flex flex-col gap-4">
                 <div class="flex flex-col lg:flex-row gap-6 items-center justify-between">
                     <div class="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 no-scrollbar" id="categoryFilters">
@@ -135,13 +132,12 @@
                 </div>
                 
                 <div class="pt-4 border-t border-slate-100 flex justify-end">
-                    <button id="globalResetBtn" class="flex items-center gap-2 bg-red-50 text-red-600 px-5 py-2 rounded-xl text-xs font-bold hover:bg-red-100 transition-all border border-red-100">
-                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Reset Data (Team JW)
+                    <button id="adminConsoleBtn" class="flex items-center gap-2 bg-slate-800 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-slate-700 transition-all shadow-md">
+                        <i data-lucide="lock" class="w-4 h-4"></i> Konsol Admin
                     </button>
                 </div>
             </div>
 
-            <!-- Paparan Senarai -->
             <div class="space-y-4">
                 <div class="flex justify-between items-center px-2">
                     <h3 class="font-bold text-slate-800 text-lg">Paparan Rekod Keberadaan <span id="recordCount" class="text-blue-600">(0)</span></h3>
@@ -161,39 +157,59 @@
         </div>
     </div>
 
-    <!-- Modal Pengesahan Team JW -->
-    <div id="authModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in border border-blue-100">
-            <div class="bg-red-600 p-6 text-white">
-                <h3 class="text-xl font-bold flex items-center gap-2">
-                    <i data-lucide="shield-alert"></i> Pengesahan Team JW
-                </h3>
-                <p class="text-red-100 text-xs mt-1 uppercase tracking-wider font-semibold">Padam rekod secara kekal</p>
-            </div>
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Pilih Nama Anda</label>
-                    <select id="jwNameSelect" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">-- Pilih Nama --</option>
-                    </select>
+    <!-- Modal Konsol Admin -->
+    <div id="adminModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in border border-slate-200">
+            
+            <!-- View 1: Paparan Log Masuk -->
+            <div id="adminLoginView">
+                <div class="bg-slate-800 p-6 text-white text-center">
+                    <i data-lucide="shield-check" class="w-12 h-12 mx-auto mb-2 text-blue-400"></i>
+                    <h3 class="text-xl font-bold">Log Masuk Admin</h3>
+                    <p class="text-slate-400 text-xs mt-1">Akses eksklusif untuk pentadbir sistem</p>
                 </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">No. Kad Pengenalan</label>
-                    <input type="password" id="jwIcInput" placeholder="Masukkan no IC tanpa '-'" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="pt-2 border-t">
-                    <label class="block text-sm font-bold text-red-700 mb-1">Tarikh untuk di-reset</label>
-                    <input type="date" id="jwResetDate" class="w-full p-3 bg-red-50 border border-red-100 rounded-xl outline-none focus:ring-2 focus:ring-red-500">
-                    <p class="text-[10px] text-slate-500 mt-2 font-medium italic">*Kosongkan tarikh jika ingin memadam SEMUA rekod dalam sistem.</p>
-                </div>
-                <div id="authError" class="hidden p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100">
-                    Maklumat tidak sah. Akses dinafikan.
-                </div>
-                <div class="flex gap-3 pt-2">
-                    <button id="cancelAuthBtn" class="flex-1 bg-slate-100 text-slate-600 p-3 rounded-xl font-bold hover:bg-slate-200 transition-all">Batal</button>
-                    <button id="confirmAuthBtn" class="flex-1 bg-red-600 text-white p-3 rounded-xl font-bold hover:bg-red-700 shadow-md transition-all uppercase">Sahkan Reset</button>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Kata Laluan</label>
+                        <input type="password" id="adminPassword" placeholder="Masukkan kata laluan..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div id="adminAuthError" class="hidden p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100 text-center">
+                        Kata laluan salah. Sila cuba lagi.
+                    </div>
+                    <div class="flex gap-3 pt-2">
+                        <button id="cancelAdminBtn" class="flex-1 bg-slate-100 text-slate-600 p-3 rounded-xl font-bold hover:bg-slate-200 transition-all">Batal</button>
+                        <button id="loginAdminBtn" class="flex-1 bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 shadow-md transition-all">Log Masuk</button>
+                    </div>
                 </div>
             </div>
+
+            <!-- View 2: Paparan Papan Pemuka Admin -->
+            <div id="adminDashboardView" class="hidden">
+                <div class="bg-red-600 p-6 text-white flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold flex items-center gap-2">
+                            <i data-lucide="database"></i> Pengurusan Data
+                        </h3>
+                        <p class="text-red-100 text-xs mt-1 uppercase tracking-wider font-semibold">Zon Kawalan Khas</p>
+                    </div>
+                    <button id="logoutAdminBtn" class="bg-red-700 hover:bg-red-800 p-2 rounded-lg transition-colors text-white" title="Log Keluar">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                        <label class="block text-sm font-bold text-red-700 mb-1">Pilih Tarikh Untuk Dipadam</label>
+                        <input type="date" id="adminResetDate" class="w-full p-3 bg-white border border-red-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500 font-medium text-slate-800">
+                        <p class="text-[10px] text-red-600 mt-2 font-medium italic">*Kosongkan tarikh jika ingin memadam <b>SEMUA</b> rekod di dalam sistem secara menyeluruh.</p>
+                    </div>
+                    <div class="pt-2">
+                        <button id="confirmAdminResetBtn" class="w-full flex items-center justify-center gap-2 bg-red-600 text-white p-4 rounded-xl font-bold hover:bg-red-700 shadow-lg transition-all uppercase tracking-wide">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i> Sahkan Padam Rekod
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -214,23 +230,14 @@
         const auth = firebase.auth();
         const appId = "keberadaan-staff-miri";
 
-        // --- TEAM JW BERTAULIAH ---
-        const JW_TEAM = [
-            { name: 'MOHAMAD ABIDIN BIN SIPEK', ic: '910110136471' },
-            { name: 'AIDA MASTURINA BINTI HAMKA', ic: '990507135736' },
-            { name: 'JIMMY ANAK PETER', ic: '910412125719' },
-            { name: 'KHAIRI BIN SAHARI', ic: '920329136299' },
-            { name: 'MOHD RAFEEQ BIN SULAIMAN', ic: '920307136255' },
-            { name: 'NURUL HUDA BTE MOHD IHWAN', ic: '900224137086' }
-        ];
-
-        // --- SENARAI STAF 2026 (Dikemaskini) ---
+        // --- SENARAI STAF 2026 (Dikemaskini berpandukan permohonan) ---
         const STAFF_LIST = [
             { name: 'AZIZ BIN TAHIR', cat: 'PENTADBIR' },
             { name: 'MOHAMAD ABIDIN BIN SIPEK', cat: 'PENTADBIR' },
             { name: 'LING MEE CHOO', cat: 'PENTADBIR' },
             { name: 'SALIHIN BIN AHMAD', cat: 'PENTADBIR' },
             
+            { name: 'ADAM BAIHAQI BIN MOHD FAZLAN', cat: 'GURU' }, // Tambahan baharu
             { name: 'AIDA MASTURINA BINTI HAMKA', cat: 'GURU' },
             { name: 'BRYAN ANAK CONSTANT', cat: 'GURU' },
             { name: 'CHRISTIAN SIMON', cat: 'GURU' },
@@ -245,7 +252,6 @@
             { name: 'KHAIRI BIN SAHARI', cat: 'GURU' },
             { name: 'MARY JANE AMOI UMPANG ANAK DANIEL MAWAT', cat: 'GURU' },
             { name: 'MOHD RAFEEQ BIN SULAIMAN', cat: 'GURU' },
-            { name: 'MUHAMMAD ZULHUSAINI BIN ABDUL WAHAB', cat: 'GURU' },
             { name: 'NUR HIDAYU BINTI YUSOP', cat: 'GURU' },
             { name: 'NURUL HUDA BTE MOHD IHWAN', cat: 'GURU' },
             { name: 'NUR FADZLIAH AMAL BINTI OSMAN', cat: 'GURU' },
@@ -254,7 +260,6 @@
             { name: 'TENG RU YUN', cat: 'GURU' },
             { name: 'TING HUA EE', cat: 'GURU' },
             { name: 'TING YU YONG', cat: 'GURU' },
-            { name: 'VANITHA A/P SUBRAMANIAM', cat: 'GURU' },
             { name: 'WONG PICK KING', cat: 'GURU' },
             { name: 'ZEPRINA ANAK BENIK', cat: 'GURU' },
             
@@ -267,7 +272,7 @@
             { name: 'EVELYN SENA ANAK USSIK', cat: 'AKP' },
             { name: 'MARIATI BINTI JULAIHI', cat: 'AKP' },
             { name: 'ALEXANDER LIPA ANAK RANTIE', cat: 'AKP' },
-            { name: 'MARRINY ANAK JENANG', cat: 'AKP' } // Staff Baru
+            { name: 'MARRINY ANAK JENANG', cat: 'AKP' }
         ];
 
         const REASONS = [
@@ -303,13 +308,12 @@
         const enableNotifBtn = document.getElementById('enableNotifBtn');
 
         function init() {
-            // Dropdowns
+            // Pengisian Elemen Dropdowns
             ['PENTADBIR', 'GURU', 'AKP'].forEach(cat => {
                 const group = document.createElement('optgroup'); group.label = cat;
                 STAFF_LIST.filter(s => s.cat === cat).forEach(s => group.appendChild(new Option(s.name, s.name)));
                 staffSelect.appendChild(group);
             });
-            JW_TEAM.forEach(m => document.getElementById('jwNameSelect').appendChild(new Option(m.name, m.name)));
             REASONS.forEach(r => reasonSelect.add(new Option(r, r)));
             
             startTimeSelect.add(new Option('Dari Jam...', ''));
@@ -334,7 +338,7 @@
                         console.error("Auth Fail:", e);
                         liveStatus.innerText = "Gagal Menyambung";
                         liveStatus.className = "text-xs font-semibold bg-red-100 text-red-700 px-3 py-1 rounded-full";
-                        alert("Gagal menyambung ke pangkalan data. Sila pastikan 'Anonymous' Login diaktifkan di Firebase Console > Authentication.");
+                        alert("Gagal menyambung ke pangkalan data.");
                     });
                 }
             });
@@ -378,7 +382,7 @@
                 isInitialLoad = false;
             }, (err) => {
                 console.error("Firestore Error:", err);
-                alert("Akses ditolak: Sila pastikan Firestore Rules membenarkan bacaan (allow read, write: if true;).");
+                alert("Akses ditolak. Sila semak pangkalan data anda.");
             });
         }
 
@@ -442,7 +446,7 @@
             return `${days[d.getDay()]}, ${d.toLocaleDateString('ms-MY')}`;
         }
 
-        // --- DYNAMIC TIME INPUT FOR AKP ---
+        // DYNAMIC TIME INPUT FOR AKP
         staffSelect.addEventListener('change', () => {
             const staff = STAFF_LIST.find(s => s.name === staffSelect.value);
             if (staff && staff.cat === 'AKP') {
@@ -460,7 +464,6 @@
             editingId = id;
             staffSelect.value = rec.staffName;
             
-            // Trigger UI change for AKP vs Guru
             staffSelect.dispatchEvent(new Event('change'));
 
             reasonSelect.value = rec.reason;
@@ -503,7 +506,7 @@
         function resetForm() {
             editingId = null;
             document.getElementById('presenceForm').reset();
-            staffSelect.dispatchEvent(new Event('change')); // Reset UI based on first empty selection
+            staffSelect.dispatchEvent(new Event('change')); 
             formTitle.innerHTML = `<i data-lucide="file-text"></i> Borang Maklumat`;
             submitBtn.innerText = "Simpan Rekod";
             cancelEditBtn.classList.add('hidden');
@@ -560,45 +563,68 @@
             }
         };
 
-        // --- RESET GLOBAL (JW TEAM) ---
-        document.getElementById('globalResetBtn').onclick = () => {
-            document.getElementById('jwIcInput').value = "";
-            document.getElementById('jwResetDate').value = currentFilterDate;
-            document.getElementById('authError').classList.add('hidden');
-            document.getElementById('authModal').classList.remove('hidden');
+        // --- LOGIK KONSOL ADMIN (GANTI TEAM JW) ---
+        document.getElementById('adminConsoleBtn').onclick = () => {
+            document.getElementById('adminPassword').value = "";
+            document.getElementById('adminAuthError').classList.add('hidden');
+            
+            // Set paparan ke View 1 (Login) secara default
+            document.getElementById('adminLoginView').classList.remove('hidden');
+            document.getElementById('adminDashboardView').classList.add('hidden');
+            
+            document.getElementById('adminModal').classList.remove('hidden');
         };
 
-        document.getElementById('confirmAuthBtn').onclick = async () => {
-            const member = JW_TEAM.find(m => m.name === document.getElementById('jwNameSelect').value);
-            const resetDate = document.getElementById('jwResetDate').value;
-            if (member && member.ic === document.getElementById('jwIcInput').value.trim()) {
-                let toDelete = [];
-                let msg = "";
-                if (resetDate) {
-                    toDelete = allRecords.filter(r => resetDate >= r.startDate && resetDate <= r.endDate);
-                    msg = `Adakah anda pasti mahu memadam SEMUA (${toDelete.length}) rekod pada tarikh ${resetDate}?`;
-                } else {
-                    toDelete = allRecords;
-                    msg = "Tindakan ini akan MEMADAM SEMUA rekod dalam sistem secara kekal. Anda pasti?";
-                }
-                if (toDelete.length === 0) { alert("Tiada rekod ditemui."); return; }
-                if(confirm(msg)) {
-                    document.getElementById('authModal').classList.add('hidden');
-                    const batch = db.batch();
-                    const colPath = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
-                    toDelete.forEach(r => batch.delete(colPath.doc(r.id)));
-                    await batch.commit();
-                    alert(resetDate ? `Rekod dipadam.` : "Sistem di-reset.");
-                }
-            } else { document.getElementById('authError').classList.remove('hidden'); }
+        // Butang Tutup Modal Admin
+        document.getElementById('cancelAdminBtn').onclick = () => document.getElementById('adminModal').classList.add('hidden');
+        document.getElementById('logoutAdminBtn').onclick = () => document.getElementById('adminModal').classList.add('hidden');
+
+        // Logik Pengesahan Password
+        document.getElementById('loginAdminBtn').onclick = () => {
+            const pwdInput = document.getElementById('adminPassword').value;
+            // Password telah ditetapkan sebagai skpkyba4112
+            if (pwdInput === 'skpkyba4112') {
+                document.getElementById('adminLoginView').classList.add('hidden');
+                document.getElementById('adminResetDate').value = currentFilterDate; // Set tarikh auto
+                document.getElementById('adminDashboardView').classList.remove('hidden');
+            } else {
+                document.getElementById('adminAuthError').classList.remove('hidden');
+            }
+        };
+
+        // Logik Padam/Reset
+        document.getElementById('confirmAdminResetBtn').onclick = async () => {
+            const resetDate = document.getElementById('adminResetDate').value;
+            
+            let toDelete = [];
+            let msg = "";
+            
+            if (resetDate) {
+                toDelete = allRecords.filter(r => resetDate >= r.startDate && resetDate <= r.endDate);
+                msg = `Adakah anda pasti mahu memadam SEMUA (${toDelete.length}) rekod pada tarikh ${resetDate}?`;
+            } else {
+                toDelete = allRecords;
+                msg = "AMARAN: Tindakan ini akan MEMADAM SEMUA rekod dalam sistem secara kekal. Anda pasti?";
+            }
+            
+            if (toDelete.length === 0) { alert("Tiada rekod ditemui."); return; }
+            
+            if(confirm(msg)) {
+                document.getElementById('adminModal').classList.add('hidden');
+                const batch = db.batch();
+                const colPath = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
+                toDelete.forEach(r => batch.delete(colPath.doc(r.id)));
+                await batch.commit();
+                alert(resetDate ? `Rekod untuk tarikh ${resetDate} berjaya dipadam.` : "Sistem di-reset secara menyeluruh.");
+            }
         };
 
         document.getElementById('toggleFormBtn').onclick = () => { formSection.classList.toggle('hidden'); if(!formSection.classList.contains('hidden')) resetForm(); };
+        
         reasonSelect.onchange = () => {
             const showLoc = reasonSelect.value === 'Urusan Rasmi / Mesyuarat' || reasonSelect.value === 'Kursus / Bengkel / Taklimat / SLU';
             document.getElementById('locationField').classList.toggle('hidden', !showLoc);
         };
-        document.getElementById('cancelAuthBtn').onclick = () => document.getElementById('authModal').classList.add('hidden');
 
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.onclick = () => {
@@ -609,6 +635,7 @@
         });
         
         filterDateInput.onchange = () => { currentFilterDate = filterDateInput.value; render(); };
+        
         document.getElementById('resetDate').onclick = () => { 
             const tzoffset = (new Date()).getTimezoneOffset() * 60000;
             currentFilterDate = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 10);
