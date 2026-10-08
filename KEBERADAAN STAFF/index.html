@@ -33,6 +33,7 @@
 
     <div id="app" class="min-h-screen p-4 md:p-8">
         <div class="max-w-5xl mx-auto">
+            
             <!-- Header dengan Logo -->
             <div class="bg-blue-800 rounded-2xl p-6 mb-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
                 <div class="flex items-center gap-4">
@@ -328,22 +329,22 @@
                             </div>
 
                             <!-- Senarai Staf Sedia Ada -->
-                            <div class="md:col-span-2 border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full max-h-[500px]">
+                            <div class="md:col-span-2 border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col h-full max-h-[550px]">
                                 <div class="bg-blue-50 p-3 border-b border-slate-200 flex justify-between items-center shrink-0">
                                     <h4 class="font-bold text-slate-700 text-sm">Senarai Staf Dalam Sistem</h4>
                                     <span class="text-xs font-semibold bg-blue-200 text-blue-800 px-2 py-1 rounded-md" id="totalStaffCount">0</span>
                                 </div>
                                 <div class="overflow-y-auto flex-1 bg-white">
                                     <table class="w-full text-left text-sm">
-                                        <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 shadow-sm">
+                                        <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 shadow-sm z-10">
                                             <tr>
-                                                <th class="p-3 font-semibold text-slate-600">Nama Staf</th>
+                                                <th class="p-3 font-semibold text-slate-600 pl-6">Nama Staf</th>
                                                 <th class="p-3 font-semibold text-slate-600 w-24">Kategori</th>
                                                 <th class="p-3 font-semibold text-center w-20">Tindakan</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="adminStaffTableBody" class="divide-y divide-slate-100">
-                                            <!-- Diisi oleh JS -->
+                                        <tbody id="adminStaffTableBody">
+                                            <!-- Diisi oleh JS (Berkategori) -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -430,6 +431,7 @@
         let unsubscribeRecords = null;
         let unsubscribeStaff = null;
         let isInitialLoad = true;
+        let isLocalMode = false;
 
         const tzoffset = (new Date()).getTimezoneOffset() * 60000;
         let currentFilterDate = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 10);
@@ -471,9 +473,8 @@
                     els.liveStatus.className = "text-xs font-semibold bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full animate-pulse";
                 } else {
                     auth.signInAnonymously().catch(e => {
-                        console.error("Auth Fail:", e);
-                        els.liveStatus.innerText = "Gagal Menyambung";
-                        els.liveStatus.className = "text-xs font-semibold bg-red-100 text-red-700 px-3 py-1 rounded-full";
+                        console.warn("Auth Fail:", e);
+                        enableLocalMode();
                     });
                 }
             });
@@ -482,8 +483,30 @@
             lucide.createIcons();
         }
 
+        // --- PENGURUSAN STORAN TEMPATAN (FALLBACK OFFLINE) ---
+        function enableLocalMode() {
+            if (isLocalMode) return;
+            isLocalMode = true;
+            console.warn("Akses Firebase disekat/gagal. Sistem menggunakan Mod Storan Tempatan (Offline).");
+            
+            els.liveStatus.innerText = "Mod Offline (Lokal)";
+            els.liveStatus.className = "text-xs font-semibold bg-amber-100 text-amber-700 px-3 py-1 rounded-full";
+            
+            dynamicStaffList = JSON.parse(localStorage.getItem('skpk_staff')) || [...INITIAL_STAFF].map((s,i) => ({id: 'local_'+i, ...s}));
+            allRecords = JSON.parse(localStorage.getItem('skpk_records')) || [];
+            
+            updateStaffDropdowns();
+            renderAdminStaffTable();
+            renderMainGrid();
+            renderAdminReportTable();
+        }
+        
+        function saveLocalStaff() { localStorage.setItem('skpk_staff', JSON.stringify(dynamicStaffList)); updateStaffDropdowns(); renderAdminStaffTable(); }
+        function saveLocalRecords() { localStorage.setItem('skpk_records', JSON.stringify(allRecords)); renderMainGrid(); renderAdminReportTable(); }
+
         // --- DATABASE: PENGURUSAN STAF DINAMIK ---
         async function initStaffDatabase() {
+            if (isLocalMode) return;
             const staffRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('staff');
             
             try {
@@ -504,19 +527,10 @@
                     updateStaffDropdowns();
                     renderAdminStaffTable();
                 }, error => {
-                    console.error("Firestore Staff Snapshot Error:", error);
-                    els.liveStatus.innerText = "Akses Disekat";
-                    els.liveStatus.className = "text-xs font-semibold bg-red-100 text-red-700 px-3 py-1 rounded-full";
+                    enableLocalMode();
                 });
             } catch (error) {
-                console.error("Firestore Permissions Error:", error);
-                els.liveStatus.innerText = "Akses Disekat (Rules)";
-                els.liveStatus.className = "text-xs font-semibold bg-red-100 text-red-700 px-3 py-1 rounded-full";
-                alert("Ralat Kebenaran Pangkalan Data: Sila kemaskini 'Firestore Rules' kepada 'allow read, write: if true;' di Firebase Console.");
-                
-                // Gunakan data sementara supaya borang tidak kosong
-                updateStaffDropdowns();
-                renderAdminStaffTable();
+                enableLocalMode();
             }
         }
 
@@ -540,21 +554,29 @@
         }
 
         function startRecordsListener() {
+            if (isLocalMode) return;
             if (unsubscribeRecords) unsubscribeRecords();
             const colRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
-            unsubscribeRecords = colRef.onSnapshot(snapshot => {
-                if (!isInitialLoad) {
-                    snapshot.docChanges().forEach(change => {
-                        if (change.type === "added" && Notification.permission === 'granted') {
-                            new Notification("REKOD BARU: " + change.doc.data().staffName, { body: change.doc.data().reason, icon: 'logo.png' });
-                        }
-                    });
-                }
-                allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderMainGrid();
-                renderAdminReportTable();
-                isInitialLoad = false;
-            }, (err) => console.error("Firestore Error:", err));
+            
+            try {
+                unsubscribeRecords = colRef.onSnapshot(snapshot => {
+                    if (!isInitialLoad) {
+                        snapshot.docChanges().forEach(change => {
+                            if (change.type === "added" && Notification.permission === 'granted') {
+                                new Notification("REKOD BARU: " + change.doc.data().staffName, { body: change.doc.data().reason, icon: 'logo.png' });
+                            }
+                        });
+                    }
+                    allRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderMainGrid();
+                    renderAdminReportTable();
+                    isInitialLoad = false;
+                }, (err) => {
+                    enableLocalMode();
+                });
+            } catch(e) {
+                enableLocalMode();
+            }
         }
 
         function renderMainGrid() {
@@ -661,10 +683,16 @@
 
         window.deleteRecord = async (id) => {
             if (confirm("Padam rekod ini?")) {
-                try {
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan').doc(id).delete();
+                if (isLocalMode) {
+                    allRecords = allRecords.filter(r => r.id !== id);
+                    saveLocalRecords();
                     if(editingId === id) resetForm();
-                } catch(e) { console.error(e); }
+                } else {
+                    try {
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan').doc(id).delete();
+                        if(editingId === id) resetForm();
+                    } catch(e) { console.error(e); }
+                }
             }
         };
 
@@ -688,12 +716,12 @@
 
         document.getElementById('presenceForm').onsubmit = async (e) => {
             e.preventDefault();
-            if (!auth.currentUser) { alert("Menyambung..."); return; }
+            if (!auth.currentUser && !isLocalMode) { alert("Menyambung kepada awan..."); return; }
             
             const staff = dynamicStaffList.find(s => s.name === els.staffSelect.value);
             let timeStr = 'Sepanjang Hari';
             
-            if (staff.category === 'AKP') {
+            if (staff.category === 'AKP' || staff.cat === 'AKP') {
                 const man = document.getElementById('manualTimeInput').value.trim();
                 if (man) timeStr = man;
             } else {
@@ -706,15 +734,26 @@
             try {
                 const reqLoc = els.reasonSelect.value === 'Urusan Rasmi / Mesyuarat' || els.reasonSelect.value === 'Kursus / Bengkel / Taklimat / SLU';
                 const data = {
-                    staffName: els.staffSelect.value, category: staff.category,
+                    staffName: els.staffSelect.value, category: staff.category || staff.cat,
                     startDate: document.getElementById('startDate').value, endDate: document.getElementById('endDate').value,
                     time: timeStr, reason: els.reasonSelect.value, location: reqLoc ? document.getElementById('locationInput').value : '',
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    updatedAt: isLocalMode ? new Date().toISOString() : firebase.firestore.FieldValue.serverTimestamp()
                 };
                 
-                const colRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
-                if (editingId) await colRef.doc(editingId).update(data);
-                else { data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await colRef.add(data); }
+                if (isLocalMode) {
+                    if (editingId) {
+                        allRecords = allRecords.map(r => r.id === editingId ? { ...r, ...data } : r);
+                    } else {
+                        data.id = 'rec_' + Date.now();
+                        data.createdAt = new Date().toISOString();
+                        allRecords.push(data);
+                    }
+                    saveLocalRecords();
+                } else {
+                    const colRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
+                    if (editingId) await colRef.doc(editingId).update(data);
+                    else { data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await colRef.add(data); }
+                }
                 
                 resetForm(); els.formSection.classList.add('hidden');
             } catch (err) { alert("Gagal menyimpan data."); } 
@@ -860,28 +899,48 @@
             doc.save(`Rumusan_Keberadaan_${Date.now()}.pdf`);
         };
 
-        // Tab 2: Staff Management
+        // Tab 2: Staff Management - Grouped by Category
         function renderAdminStaffTable() {
             document.getElementById('totalStaffCount').innerText = dynamicStaffList.length;
             
-            // Susun nama ikut abjad (A-Z) untuk paparan jadual Konsol Admin
+            // Susun nama ikut abjad (A-Z)
             const sortedStaff = [...dynamicStaffList].sort((a, b) => a.name.localeCompare(b.name));
             
-            els.adminStaffTableBody.innerHTML = sortedStaff.map(stf => {
-                const isTemp = String(stf.id).startsWith('temp_');
-                const catLabel = stf.category || stf.cat || 'TIADA';
-                return `
-                <tr class="hover:bg-slate-50 group transition-colors">
-                    <td class="p-3 font-semibold text-slate-800 text-xs">${stf.name}</td>
-                    <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold">${catLabel}</span></td>
-                    <td class="p-3 text-center">
-                        <button onclick="deleteStaff('${stf.id}', '${stf.name}')" class="text-slate-400 hover:text-red-600 p-1 rounded transition-colors ${isTemp ? 'opacity-30 cursor-not-allowed' : 'opacity-0 group-hover:opacity-100'}" title="${isTemp ? 'Tunggu penyegerakan awan...' : 'Padam Staf'}" ${isTemp ? 'disabled' : ''}>
-                            <i data-lucide="trash" class="w-4 h-4"></i>
-                        </button>
-                    </td>
-                </tr>
-                `
-            }).join('');
+            let htmlContent = '';
+            const categories = ['PENTADBIR', 'GURU', 'AKP'];
+            
+            categories.forEach(cat => {
+                const staffInCat = sortedStaff.filter(s => (s.category === cat || s.cat === cat));
+                
+                if (staffInCat.length > 0) {
+                    // Header kategori untuk pembahagi visual
+                    htmlContent += `
+                    <tr class="bg-slate-200 border-b border-slate-300">
+                        <td colspan="3" class="p-3 font-extrabold text-slate-800 text-[11px] uppercase tracking-wider">
+                            <i data-lucide="users" class="inline w-4 h-4 mr-1 text-slate-500 relative -top-0.5"></i> ${cat} (${staffInCat.length} STAF)
+                        </td>
+                    </tr>`;
+                    
+                    // Senarai nama di bawah kategori tersebut
+                    htmlContent += staffInCat.map(stf => {
+                        const isTemp = String(stf.id).startsWith('temp_') || String(stf.id).startsWith('local_');
+                        const catLabel = stf.category || stf.cat || 'TIADA';
+                        return `
+                        <tr class="hover:bg-slate-50 group transition-colors">
+                            <td class="p-3 font-semibold text-slate-700 text-xs pl-6">${stf.name}</td>
+                            <td class="p-3"><span class="bg-white border border-slate-200 shadow-sm text-slate-600 px-2 py-1 rounded text-[10px] font-bold">${catLabel}</span></td>
+                            <td class="p-3 text-center">
+                                <button onclick="deleteStaff('${stf.id}', '${stf.name}')" class="text-slate-400 hover:text-red-600 p-1 rounded transition-colors ${isTemp && !isLocalMode ? 'opacity-30 cursor-not-allowed' : 'opacity-0 group-hover:opacity-100'}" title="${isTemp && !isLocalMode ? 'Tunggu penyegerakan awan...' : 'Padam Staf'}" ${(isTemp && !isLocalMode) ? 'disabled' : ''}>
+                                    <i data-lucide="trash" class="w-4 h-4"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        `;
+                    }).join('');
+                }
+            });
+            
+            els.adminStaffTableBody.innerHTML = htmlContent;
             lucide.createIcons();
         }
 
@@ -891,20 +950,32 @@
             const nCat = document.getElementById('newStaffCat').value;
             if(!nName || !nCat) return;
 
-            try {
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('staff').add({
-                    name: nName, category: nCat, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+            if (isLocalMode) {
+                dynamicStaffList.push({ id: 'stf_' + Date.now(), name: nName, category: nCat });
+                saveLocalStaff();
                 document.getElementById('addStaffForm').reset();
-                alert(`Staf ${nName} berjaya ditambah!`);
-            } catch(e) { console.error(e); alert("Gagal menambah staf."); }
+                alert(`Staf ${nName} berjaya ditambah! (Mod Offline)`);
+            } else {
+                try {
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('staff').add({
+                        name: nName, category: nCat, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    document.getElementById('addStaffForm').reset();
+                    alert(`Staf ${nName} berjaya ditambah!`);
+                } catch(e) { console.error(e); alert("Gagal menambah staf."); }
+            }
         };
 
         window.deleteStaff = async (id, name) => {
             if(confirm(`AWAS! Anda pasti mahu memadam staf ${name} dari sistem?`)) {
-                try {
-                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('staff').doc(id).delete();
-                } catch(e) { alert("Gagal memadam."); }
+                if (isLocalMode) {
+                    dynamicStaffList = dynamicStaffList.filter(s => s.id !== id);
+                    saveLocalStaff();
+                } else {
+                    try {
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('staff').doc(id).delete();
+                    } catch(e) { alert("Gagal memadam."); }
+                }
             }
         };
 
@@ -923,12 +994,20 @@
             if (toDelete.length === 0) { alert("Tiada rekod ditemui."); return; }
             
             if(confirm(msg)) {
-                const batch = db.batch();
-                const colPath = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
-                toDelete.forEach(r => batch.delete(colPath.doc(r.id)));
-                await batch.commit();
-                alert(resetDate ? `Rekod tarikh ${resetDate} berjaya dipadam.` : "Sistem di-reset secara menyeluruh.");
-                renderAdminReportTable();
+                if (isLocalMode) {
+                    const deleteIds = toDelete.map(d => d.id);
+                    allRecords = allRecords.filter(r => !deleteIds.includes(r.id));
+                    saveLocalRecords();
+                    alert(resetDate ? `Rekod tarikh ${resetDate} berjaya dipadam.` : "Sistem di-reset secara menyeluruh.");
+                    renderAdminReportTable();
+                } else {
+                    const batch = db.batch();
+                    const colPath = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('keberadaan');
+                    toDelete.forEach(r => batch.delete(colPath.doc(r.id)));
+                    await batch.commit();
+                    alert(resetDate ? `Rekod tarikh ${resetDate} berjaya dipadam.` : "Sistem di-reset secara menyeluruh.");
+                    renderAdminReportTable();
+                }
             }
         };
 
