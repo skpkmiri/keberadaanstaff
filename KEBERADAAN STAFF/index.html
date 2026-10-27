@@ -492,7 +492,16 @@
             els.liveStatus.innerText = "Mod Offline (Lokal)";
             els.liveStatus.className = "text-xs font-semibold bg-amber-100 text-amber-700 px-3 py-1 rounded-full";
             
-            dynamicStaffList = JSON.parse(localStorage.getItem('skpk_staff')) || [...INITIAL_STAFF].map((s,i) => ({id: 'local_'+i, ...s}));
+            let localStaff = JSON.parse(localStorage.getItem('skpk_staff')) || [...INITIAL_STAFF].map((s,i) => ({id: 'local_'+i, ...s}));
+            
+            // PENAPIS: Buang nama duplicate dari paparan
+            const seenStaff = new Set();
+            dynamicStaffList = localStaff.filter(stf => {
+                if (seenStaff.has(stf.name)) return false;
+                seenStaff.add(stf.name);
+                return true;
+            });
+
             allRecords = JSON.parse(localStorage.getItem('skpk_records')) || [];
             
             updateStaffDropdowns();
@@ -523,7 +532,16 @@
                 // Real-time listener for Staff
                 if (unsubscribeStaff) unsubscribeStaff();
                 unsubscribeStaff = staffRef.orderBy('name').onSnapshot(snapshot => {
-                    dynamicStaffList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    let rawStaffList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    // PENAPIS: Buang nama duplicate dari pangkalan data awan
+                    const seenStaff = new Set();
+                    dynamicStaffList = rawStaffList.filter(stf => {
+                        if (seenStaff.has(stf.name)) return false;
+                        seenStaff.add(stf.name);
+                        return true;
+                    });
+
                     updateStaffDropdowns();
                     renderAdminStaffTable();
                 }, error => {
